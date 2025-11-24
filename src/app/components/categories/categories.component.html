@@ -1,0 +1,315 @@
+<div class="container">
+  <h1>Categories Management</h1>
+  
+  <div class="tabs">
+    <button class="tab-btn" [class.active]="activeTab === 'main'" (click)="setActiveTab('main')">Main Categories</button>
+    <button class="tab-btn" [class.active]="activeTab === 'second'" (click)="setActiveTab('second')">Second Categories</button>
+    <button class="tab-btn" [class.active]="activeTab === 'third'" (click)="setActiveTab('third')">Third Categories</button>
+    <button class="tab-btn" [class.active]="activeTab === 'vendors'" (click)="setActiveTab('vendors')">Vendors</button>
+    <button class="tab-btn" [class.active]="activeTab === 'brands'" (click)="setActiveTab('brands')">Brands</button>
+  </div>
+
+  <!-- Main Categories -->
+  <div class="card" *ngIf="activeTab === 'main'">
+    <div class="header-section">
+      <h2>Main Categories</h2>
+      <button class="btn btn-success" *ngIf="isAdmin()" (click)="showMainCategoryForm()">Add Main Category</button>
+    </div>
+
+    <div class="card" *ngIf="showForm && formType === 'main'">
+      <h3>{{ editingItem ? 'Edit Main Category' : 'Add New Main Category' }}</h3>
+      <form (ngSubmit)="saveMainCategory()">
+        <div class="form-group">
+          <label>Name *</label>
+          <input type="text" [(ngModel)]="mainCategoryForm.mainCategoryName" name="name" required />
+        </div>
+        <div class="form-group">
+          <label>Description</label>
+          <textarea [(ngModel)]="mainCategoryForm.mainCategoryDescription" name="description"></textarea>
+        </div>
+        <div class="form-actions">
+          <button type="submit" class="btn btn-primary">{{ editingItem ? 'Update' : 'Create' }}</button>
+          <button type="button" class="btn btn-danger" (click)="resetForm()">Cancel</button>
+        </div>
+      </form>
+    </div>
+
+    <table class="table">
+      <thead>
+        <tr>
+          <th>ID</th>
+          <th>Name</th>
+          <th>Description</th>
+          <th *ngIf="isAdmin()">Actions</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr *ngFor="let category of mainCategories">
+          <td>{{ category.mainCategoryId }}</td>
+          <td>{{ category.mainCategoryName }}</td>
+          <td>{{ category.mainCategoryDescription }}</td>
+          <td *ngIf="isAdmin()">
+            <button class="btn btn-primary" (click)="showMainCategoryForm(category)">Edit</button>
+            <button class="btn btn-danger" (click)="deleteMainCategory(category.mainCategoryId)">Delete</button>
+          </td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <!-- Second Categories -->
+  <div class="card" *ngIf="activeTab === 'second'">
+    <div class="header-section">
+      <h2>Second Categories</h2>
+      <button class="btn btn-success" *ngIf="isAdmin()" (click)="showSecondCategoryForm()">Add Second Category</button>
+    </div>
+
+    <div class="card" *ngIf="showForm && formType === 'second'">
+      <h3>{{ editingItem ? 'Edit Second Category' : 'Add New Second Category' }}</h3>
+      <form (ngSubmit)="saveSecondCategory()">
+        <div class="form-group">
+          <label>Main Category *</label>
+          <select [(ngModel)]="secondCategoryForm.mainCategoryId" name="mainCategoryId" required>
+            <option value="0">Select Main Category</option>
+            <option *ngFor="let mc of mainCategories" [value]="mc.mainCategoryId">{{ mc.mainCategoryName }}</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label>Name *</label>
+          <input type="text" [(ngModel)]="secondCategoryForm.secondCategoryName" name="name" required />
+        </div>
+        <div class="form-group">
+          <label>Description</label>
+          <textarea [(ngModel)]="secondCategoryForm.secondCategoryDescription" name="description"></textarea>
+        </div>
+        <div class="form-actions">
+          <button type="submit" class="btn btn-primary">{{ editingItem ? 'Update' : 'Create' }}</button>
+          <button type="button" class="btn btn-danger" (click)="resetForm()">Cancel</button>
+        </div>
+      </form>
+    </div>
+
+    <table class="table">
+      <thead>
+        <tr>
+          <th>ID</th>
+          <th>Name</th>
+          <th>Main Category</th>
+          <th>Description</th>
+          <th *ngIf="isAdmin()">Actions</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr *ngFor="let category of secondCategories">
+          <td>{{ category.secondCategoryId }}</td>
+          <td>{{ category.secondCategoryName }}</td>
+          <td>{{ category.mainCategoryName }}</td>
+          <td>{{ category.secondCategoryDescription }}</td>
+          <td *ngIf="isAdmin()">
+            <button class="btn btn-primary" (click)="showSecondCategoryForm(category)">Edit</button>
+            <button class="btn btn-danger" (click)="deleteSecondCategory(category.secondCategoryId)">Delete</button>
+          </td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <!-- Third Categories -->
+  <div class="card" *ngIf="activeTab === 'third'">
+    <div class="header-section">
+      <h2>Third Categories</h2>
+      <button class="btn btn-success" *ngIf="isAdmin()" (click)="showThirdCategoryForm()">Add Third Category</button>
+    </div>
+
+    <div class="card" *ngIf="showForm && formType === 'third'">
+      <h3>{{ editingItem ? 'Edit Third Category' : 'Add New Third Category' }}</h3>
+      <form (ngSubmit)="saveThirdCategory()">
+        <div class="form-group">
+          <label>Second Category *</label>
+          <select [(ngModel)]="thirdCategoryForm.secondCategoryId" name="secondCategoryId" required>
+            <option value="0">Select Second Category</option>
+            <option *ngFor="let sc of secondCategories" [value]="sc.secondCategoryId">{{ sc.secondCategoryName }}</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label>Name *</label>
+          <input type="text" [(ngModel)]="thirdCategoryForm.thirdCategoryName" name="name" required />
+        </div>
+        <div class="form-group">
+          <label>Description</label>
+          <textarea [(ngModel)]="thirdCategoryForm.thirdCategoryDescription" name="description"></textarea>
+        </div>
+        <div class="form-actions">
+          <button type="submit" class="btn btn-primary">{{ editingItem ? 'Update' : 'Create' }}</button>
+          <button type="button" class="btn btn-danger" (click)="resetForm()">Cancel</button>
+        </div>
+      </form>
+    </div>
+
+    <table class="table">
+      <thead>
+        <tr>
+          <th>ID</th>
+          <th>Name</th>
+          <th>Second Category</th>
+          <th>Description</th>
+          <th *ngIf="isAdmin()">Actions</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr *ngFor="let category of thirdCategories">
+          <td>{{ category.thirdCategoryId }}</td>
+          <td>{{ category.thirdCategoryName }}</td>
+          <td>{{ category.secondCategoryName }}</td>
+          <td>{{ category.thirdCategoryDescription }}</td>
+          <td *ngIf="isAdmin()">
+            <button class="btn btn-primary" (click)="showThirdCategoryForm(category)">Edit</button>
+            <button class="btn btn-danger" (click)="deleteThirdCategory(category.thirdCategoryId)">Delete</button>
+          </td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <!-- Vendors -->
+  <div class="card" *ngIf="activeTab === 'vendors'">
+    <div class="header-section">
+      <h2>Vendors</h2>
+      <button class="btn btn-success" *ngIf="isAdmin()" (click)="showVendorForm()">Add Vendor</button>
+    </div>
+
+    <div class="card" *ngIf="showForm && formType === 'vendor'">
+      <h3>{{ editingItem ? 'Edit Vendor' : 'Add New Vendor' }}</h3>
+      <form (ngSubmit)="saveVendor()">
+        <div class="form-group">
+          <label>Third Category *</label>
+          <select [(ngModel)]="vendorForm.thirdCategoryId" name="thirdCategoryId" required>
+            <option value="0">Select Third Category</option>
+            <option *ngFor="let tc of thirdCategories" [value]="tc.thirdCategoryId">{{ tc.thirdCategoryName }}</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label>Vendor Tag</label>
+          <input type="text" [(ngModel)]="vendorForm.vendorTag" name="tag" />
+        </div>
+        <div class="form-group">
+          <label>Name *</label>
+          <input type="text" [(ngModel)]="vendorForm.vendorName" name="name" required />
+        </div>
+        <div class="form-group">
+          <label>Description</label>
+          <textarea [(ngModel)]="vendorForm.vendorDescription" name="description"></textarea>
+        </div>
+        <div class="form-group">
+          <label>Status</label>
+          <select [(ngModel)]="vendorForm.vendorStatus" name="status">
+            <option value="YES">Active</option>
+            <option value="NO">Inactive</option>
+          </select>
+        </div>
+        <div class="form-actions">
+          <button type="submit" class="btn btn-primary">{{ editingItem ? 'Update' : 'Create' }}</button>
+          <button type="button" class="btn btn-danger" (click)="resetForm()">Cancel</button>
+        </div>
+      </form>
+    </div>
+
+    <table class="table">
+      <thead>
+        <tr>
+          <th>ID</th>
+          <th>Tag</th>
+          <th>Name</th>
+          <th>Third Category</th>
+          <th>Status</th>
+          <th>Register Date</th>
+          <th *ngIf="isAdmin()">Actions</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr *ngFor="let vendor of vendors">
+          <td>{{ vendor.vendorId }}</td>
+          <td>{{ vendor.vendorTag }}</td>
+          <td>{{ vendor.vendorName }}</td>
+          <td>{{ vendor.thirdCategoryName }}</td>
+          <td>{{ vendor.vendorStatus }}</td>
+          <td>{{ vendor.registerDate | date:'short' }}</td>
+          <td *ngIf="isAdmin()">
+            <button class="btn btn-primary" (click)="showVendorForm(vendor)">Edit</button>
+            <button class="btn btn-danger" (click)="deleteVendor(vendor.vendorId)">Delete</button>
+          </td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <!-- Brands -->
+  <div class="card" *ngIf="activeTab === 'brands'">
+    <div class="header-section">
+      <h2>Brands</h2>
+      <button class="btn btn-success" *ngIf="isAdmin()" (click)="showBrandForm()">Add Brand</button>
+    </div>
+
+    <div class="card" *ngIf="showForm && formType === 'brand'">
+      <h3>{{ editingItem ? 'Edit Brand' : 'Add New Brand' }}</h3>
+      <form (ngSubmit)="saveBrand()">
+        <div class="form-group">
+          <label>Vendor *</label>
+          <select [(ngModel)]="brandForm.vendorId" name="vendorId" required>
+            <option value="0">Select Vendor</option>
+            <option *ngFor="let vendor of vendors" [value]="vendor.vendorId">{{ vendor.vendorName }}</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label>Brand Tag</label>
+          <input type="text" [(ngModel)]="brandForm.brandTag" name="tag" />
+        </div>
+        <div class="form-group">
+          <label>Name *</label>
+          <input type="text" [(ngModel)]="brandForm.brandName" name="name" required />
+        </div>
+        <div class="form-group">
+          <label>Description</label>
+          <textarea [(ngModel)]="brandForm.brandDescription" name="description"></textarea>
+        </div>
+        <div class="form-group">
+          <label>Status</label>
+          <select [(ngModel)]="brandForm.brandStatus" name="status">
+            <option value="YES">Active</option>
+            <option value="NO">Inactive</option>
+          </select>
+        </div>
+        <div class="form-actions">
+          <button type="submit" class="btn btn-primary">{{ editingItem ? 'Update' : 'Create' }}</button>
+          <button type="button" class="btn btn-danger" (click)="resetForm()">Cancel</button>
+        </div>
+      </form>
+    </div>
+
+    <table class="table">
+      <thead>
+        <tr>
+          <th>ID</th>
+          <th>Tag</th>
+          <th>Name</th>
+          <th>Vendor</th>
+          <th>Status</th>
+          <th *ngIf="isAdmin()">Actions</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr *ngFor="let brand of brands">
+          <td>{{ brand.brandId }}</td>
+          <td>{{ brand.brandTag }}</td>
+          <td>{{ brand.brandName }}</td>
+          <td>{{ brand.vendorName }}</td>
+          <td>{{ brand.brandStatus }}</td>
+          <td *ngIf="isAdmin()">
+            <button class="btn btn-primary" (click)="showBrandForm(brand)">Edit</button>
+            <button class="btn btn-danger" (click)="deleteBrand(brand.brandId)">Delete</button>
+          </td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+</div>

@@ -1,0 +1,63 @@
+<div class="container">
+  <div class="header-section">
+    <h1>Barcodes Management</h1>
+    <div class="button-group">
+      <button class="btn btn-success" *ngIf="isAdmin() || isCashier()" (click)="showCreateForm()">Add Barcode</button>
+      <button class="btn btn-info" *ngIf="isAdmin() || isCashier()" (click)="generateBarcode()">Generate Barcode</button>
+    </div>
+  </div>
+
+  <div class="card" *ngIf="showForm">
+    <h2>{{ editingBarcode ? 'Edit Barcode' : 'Add New Barcode' }}</h2>
+    <form (ngSubmit)="saveBarcode()">
+      <div class="form-group">
+        <label>Barcode Value *</label>
+        <input type="text" [(ngModel)]="barcodeForm.barCode1" name="barcode" required />
+      </div>
+      <div class="form-actions">
+        <button type="submit" class="btn btn-primary">{{ editingBarcode ? 'Update' : 'Create' }}</button>
+        <button type="button" class="btn btn-danger" (click)="resetForm()">Cancel</button>
+      </div>
+    </form>
+  </div>
+
+  <div class="card" *ngIf="isAdmin() || isCashier()">
+    <h2>Generate Barcode</h2>
+    <form (ngSubmit)="generateBarcode()">
+      <div class="form-group">
+        <label>Custom Value (optional)</label>
+        <input type="text" [(ngModel)]="generateForm.value" name="value" placeholder="Leave empty for auto-generation" />
+      </div>
+      <div class="form-group">
+        <label>Product ID (optional)</label>
+        <input type="number" [(ngModel)]="generateForm.productId" name="productId" />
+      </div>
+      <div class="form-actions">
+        <button type="submit" class="btn btn-info">Generate</button>
+      </div>
+    </form>
+  </div>
+
+  <div class="card">
+    <table class="table">
+      <thead>
+        <tr>
+          <th>ID</th>
+          <th>Barcode</th>
+          <th *ngIf="isAdmin()">Actions</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr *ngFor="let barcode of barcodes">
+          <td>{{ barcode.barCodeId }}</td>
+          <td>{{ barcode.barCode1 }}</td>
+          <td *ngIf="isAdmin()">
+            <button class="btn btn-primary" (click)="showEditForm(barcode)">Edit</button>
+            <button class="btn btn-danger" (click)="deleteBarcode(barcode.barCodeId)">Delete</button>
+          </td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+</div>
+

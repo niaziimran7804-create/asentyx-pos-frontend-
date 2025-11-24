@@ -1,0 +1,83 @@
+<div class="container">
+  <div class="header-section">
+    <h1>Products Management</h1>
+    <div class="search-section">
+      <input type="text" [(ngModel)]="searchKey" placeholder="Search products..." class="search-input" />
+      <button class="btn btn-primary" (click)="search()">Search</button>
+      <button class="btn btn-success" (click)="showForm = !showForm">Add Product</button>
+    </div>
+  </div>
+
+  <div class="card" *ngIf="showForm">
+    <h2>{{ editingProduct ? 'Edit Product' : 'Add New Product' }}</h2>
+    <form (ngSubmit)="editingProduct ? updateProduct() : createProduct()">
+      <div class="form-group">
+        <label>Product Name</label>
+        <input type="text" [(ngModel)]="productForm.productName" name="productName" required />
+      </div>
+      <div class="form-group">
+        <label>Brand</label>
+        <select [(ngModel)]="productForm.brandId" name="brandId" required>
+          <option value="0">Select Brand</option>
+          <option *ngFor="let brand of brands" [value]="brand.brandId">{{ brand.brandName }}</option>
+        </select>
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label>Price</label>
+          <input type="number" [(ngModel)]="productForm.productPerUnitPrice" name="price" step="0.01" required />
+        </div>
+        <div class="form-group">
+          <label>MSRP</label>
+          <input type="number" [(ngModel)]="productForm.productMSRP" name="msrp" step="0.01" required />
+        </div>
+        <div class="form-group">
+          <label>Stock</label>
+          <input type="number" [(ngModel)]="productForm.productUnitStock" name="stock" required />
+        </div>
+      </div>
+      <div class="form-group">
+        <label>Status</label>
+        <select [(ngModel)]="productForm.productStatus" name="status">
+          <option value="YES">Available</option>
+          <option value="NO">Unavailable</option>
+        </select>
+      </div>
+      <div class="form-actions">
+        <button type="submit" class="btn btn-primary">{{ editingProduct ? 'Update' : 'Create' }}</button>
+        <button type="button" class="btn btn-danger" (click)="resetForm()">Cancel</button>
+      </div>
+    </form>
+  </div>
+
+  <div class="card">
+    <table class="table">
+      <thead>
+        <tr>
+          <th>ID</th>
+          <th>Name</th>
+          <th>Brand</th>
+          <th>Price</th>
+          <th>Stock</th>
+          <th>Status</th>
+          <th>Actions</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr *ngFor="let product of products">
+          <td>{{ product.productId }}</td>
+          <td>{{ product.productName }}</td>
+          <td>{{ product.brandName }}</td>
+          <td>${{ product.productPerUnitPrice }}</td>
+          <td>{{ product.productUnitStock }}</td>
+          <td>{{ product.productStatus }}</td>
+          <td>
+            <button class="btn btn-primary" (click)="editProduct(product)">Edit</button>
+            <button class="btn btn-danger" (click)="deleteProduct(product.productId)">Delete</button>
+          </td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+</div>
+

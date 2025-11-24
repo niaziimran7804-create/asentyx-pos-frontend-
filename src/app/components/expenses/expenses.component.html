@@ -1,0 +1,60 @@
+<div class="container">
+  <div class="header-section">
+    <h1>Expenses Management</h1>
+    <button class="btn btn-success" (click)="showForm = !showForm">Add Expense</button>
+  </div>
+
+  <div class="card" *ngIf="showForm">
+    <h2>{{ editingExpense ? 'Edit Expense' : 'Add New Expense' }}</h2>
+    <form (ngSubmit)="editingExpense ? updateExpense() : createExpense()">
+      <div class="form-row">
+        <div class="form-group">
+          <label>Expense Name</label>
+          <input type="text" [(ngModel)]="expenseForm.expenseName" name="expenseName" required />
+        </div>
+        <div class="form-group">
+          <label>Amount</label>
+          <input type="number" [(ngModel)]="expenseForm.expenseAmount" name="amount" step="0.01" required />
+        </div>
+        <div class="form-group">
+          <label>Date</label>
+          <input type="date" [(ngModel)]="expenseForm.expenseDate" name="date" required />
+        </div>
+      </div>
+      <div class="form-actions">
+        <button type="submit" class="btn btn-primary">{{ editingExpense ? 'Update' : 'Create' }}</button>
+        <button type="button" class="btn btn-danger" (click)="resetForm()">Cancel</button>
+      </div>
+    </form>
+  </div>
+
+  <div class="card">
+    <div class="total-section">
+      <h3>Total Expenses: ${{ getTotalExpenses() }}</h3>
+    </div>
+    <table class="table">
+      <thead>
+        <tr>
+          <th>ID</th>
+          <th>Name</th>
+          <th>Amount</th>
+          <th>Date</th>
+          <th>Actions</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr *ngFor="let expense of expenses">
+          <td>{{ expense.expenseId }}</td>
+          <td>{{ expense.expenseName }}</td>
+          <td>${{ expense.expenseAmount }}</td>
+          <td>{{ expense.expenseDate | date:'short' }}</td>
+          <td>
+            <button class="btn btn-primary" (click)="editExpense(expense)">Edit</button>
+            <button class="btn btn-danger" (click)="deleteExpense(expense.expenseId)">Delete</button>
+          </td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+</div>
+

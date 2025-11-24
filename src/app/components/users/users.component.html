@@ -1,0 +1,89 @@
+<div class="container">
+  <div class="header-section">
+    <h1>Users Management</h1>
+    <button class="btn btn-success" (click)="showForm = !showForm">Add User</button>
+  </div>
+
+  <div class="card" *ngIf="showForm">
+    <h2>{{ editingUser ? 'Edit User' : 'Add New User' }}</h2>
+    <form (ngSubmit)="editingUser ? updateUser() : createUser()">
+      <div class="form-row">
+        <div class="form-group">
+          <label>User ID</label>
+          <input type="text" [(ngModel)]="userForm.userId" name="userId" [disabled]="!!editingUser" required />
+        </div>
+        <div class="form-group">
+          <label>First Name</label>
+          <input type="text" [(ngModel)]="userForm.firstName" name="firstName" required />
+        </div>
+        <div class="form-group">
+          <label>Last Name</label>
+          <input type="text" [(ngModel)]="userForm.lastName" name="lastName" required />
+        </div>
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label>Password</label>
+          <input type="password" [(ngModel)]="userForm.password" name="password" [required]="!editingUser" />
+        </div>
+        <div class="form-group">
+          <label>Role</label>
+          <select [(ngModel)]="userForm.role" name="role">
+            <option value="Admin">Admin</option>
+            <option value="Cashier">Cashier</option>
+            <option value="Salesman">Salesman</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label>Age</label>
+          <input type="number" [(ngModel)]="userForm.age" name="age" required />
+        </div>
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label>Salary</label>
+          <input type="number" [(ngModel)]="userForm.salary" name="salary" step="0.01" required />
+        </div>
+        <div class="form-group">
+          <label>Birthdate</label>
+          <input type="date" [(ngModel)]="userForm.birthdate" name="birthdate" required />
+        </div>
+      </div>
+      <div class="form-actions">
+        <button type="submit" class="btn btn-primary">{{ editingUser ? 'Update' : 'Create' }}</button>
+        <button type="button" class="btn btn-danger" (click)="resetForm()">Cancel</button>
+      </div>
+    </form>
+  </div>
+
+  <div class="card">
+    <table class="table">
+      <thead>
+        <tr>
+          <th>ID</th>
+          <th>User ID</th>
+          <th>Name</th>
+          <th>Role</th>
+          <th>Email</th>
+          <th>Phone</th>
+          <th>Actions</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr *ngFor="let user of users">
+          <td>{{ user.id }}</td>
+          <td>{{ user.userId }}</td>
+          <td>{{ user.firstName }} {{ user.lastName }}</td>
+          <td>{{ user.role }}</td>
+          <td>{{ user.email }}</td>
+          <td>{{ user.phone }}</td>
+          <td>
+            <button class="btn btn-primary" (click)="editUser(user)">Edit</button>
+            <button class="btn btn-danger" (click)="deleteUser(user.id)">Delete</button>
+          </td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+</div>
+

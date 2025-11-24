@@ -1,0 +1,45 @@
+<div class="dashboard-container">
+  <header class="dashboard-header">
+    <h1>POS Dashboard</h1>
+    <div class="user-info">
+      <span>Welcome, {{ currentUser?.firstName }} {{ currentUser?.lastName }} ({{ currentUser?.role }})</span>
+      <button class="btn btn-danger" (click)="logout()">Logout</button>
+    </div>
+  </header>
+
+  <nav class="dashboard-nav">
+    <button class="nav-btn" (click)="navigateTo('/dashboard')">Dashboard</button>
+    <button class="nav-btn" (click)="navigateTo('/products')">Products</button>
+    <button class="nav-btn" (click)="navigateTo('/orders')">Orders</button>
+    <button class="nav-btn" (click)="navigateTo('/categories')">Categories</button>
+    <button class="nav-btn" (click)="navigateTo('/barcodes')" *ngIf="isAdmin() || isCashier()">Barcodes</button>
+    <button class="nav-btn" (click)="navigateTo('/invoices')">Invoices</button>
+    <button class="nav-btn" (click)="navigateTo('/expenses')" *ngIf="isAdmin()">Expenses</button>
+    <button class="nav-btn" (click)="navigateTo('/users')" *ngIf="isAdmin()">Users</button>
+  </nav>
+
+  <div class="stats-container">
+    <div class="stat-card">
+      <h3>Total Products</h3>
+      <p class="stat-number">{{ totalProducts }}</p>
+    </div>
+    <div class="stat-card">
+      <h3>Available Products</h3>
+      <p class="stat-number">{{ availableProducts }}</p>
+    </div>
+    <div class="stat-card">
+      <h3>Unavailable Products</h3>
+      <p class="stat-number">{{ unavailableProducts }}</p>
+    </div>
+  </div>
+
+  <div class="quick-actions">
+    <h2>Quick Actions</h2>
+    <div class="action-buttons">
+      <button class="btn btn-primary" (click)="navigateTo('/orders')">Create New Order</button>
+      <button class="btn btn-success" (click)="navigateTo('/products')">Manage Products</button>
+      <button class="btn btn-primary" (click)="navigateTo('/categories')">Manage Categories</button>
+    </div>
+  </div>
+</div>
+
