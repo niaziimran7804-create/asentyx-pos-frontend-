@@ -5,6 +5,7 @@ import { CategoryService } from '../../services/category.service';
 import { BrandDto } from '../../models/category.models';
 import { AuthService } from '../../services/auth.service';
 import { Router } from '@angular/router';
+import Swal from 'sweetalert2';
 
 interface MenuItem {
   label: string;
@@ -115,10 +116,24 @@ export class ProductsComponent implements OnInit {
   createProduct(): void {
     this.productService.createProduct(this.productForm).subscribe({
       next: () => {
+        Swal.fire({
+          icon: 'success',
+          title: 'Success!',
+          text: 'Product created successfully',
+          confirmButtonColor: '#667eea',
+          timer: 2000
+        });
         this.loadProducts();
         this.resetForm();
       },
-      error: (error) => console.error('Error creating product:', error)
+      error: (error) => {
+        Swal.fire({
+          icon: 'error',
+          title: 'Error Creating Product',
+          text: 'Failed to create product. Please try again.',
+          confirmButtonColor: '#667eea'
+        });
+      }
     });
   }
 
@@ -144,21 +159,61 @@ export class ProductsComponent implements OnInit {
     if (this.editingProduct) {
       this.productService.updateProduct(this.editingProduct.productId, this.productForm).subscribe({
         next: () => {
+          Swal.fire({
+            icon: 'success',
+            title: 'Success!',
+            text: 'Product updated successfully',
+            confirmButtonColor: '#667eea',
+            timer: 2000
+          });
           this.loadProducts();
           this.resetForm();
         },
-        error: (error) => console.error('Error updating product:', error)
+        error: (error) => {
+          Swal.fire({
+            icon: 'error',
+            title: 'Error Updating Product',
+            text: 'Failed to update product. Please try again.',
+            confirmButtonColor: '#667eea'
+          });
+        }
       });
     }
   }
 
   deleteProduct(id: number): void {
-    if (confirm('Are you sure you want to delete this product?')) {
-      this.productService.deleteProduct(id).subscribe({
-        next: () => this.loadProducts(),
-        error: (error) => console.error('Error deleting product:', error)
-      });
-    }
+    Swal.fire({
+      title: 'Are you sure?',
+      text: 'You won\'t be able to revert this!',
+      icon: 'warning',
+      showCancelButton: true,
+      confirmButtonColor: '#667eea',
+      cancelButtonColor: '#d33',
+      confirmButtonText: 'Yes, delete it!'
+    }).then((result) => {
+      if (result.isConfirmed) {
+        this.productService.deleteProduct(id).subscribe({
+          next: () => {
+            Swal.fire({
+              icon: 'success',
+              title: 'Deleted!',
+              text: 'Product has been deleted.',
+              confirmButtonColor: '#667eea',
+              timer: 2000
+            });
+            this.loadProducts();
+          },
+          error: (error) => {
+            Swal.fire({
+              icon: 'error',
+              title: 'Error',
+              text: 'Failed to delete product. Please try again.',
+              confirmButtonColor: '#667eea'
+            });
+          }
+        });
+      }
+    });
   }
 
   resetForm(): void {

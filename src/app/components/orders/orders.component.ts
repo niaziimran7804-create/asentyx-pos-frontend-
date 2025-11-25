@@ -6,6 +6,7 @@ import { OrderDto, CreateOrderDto, OrderItemDto, UpdateOrderStatusDto, CustomerS
 import { ProductDto } from '../../models/product.models';
 import { AuthService } from '../../services/auth.service';
 import { debounceTime, distinctUntilChanged, Subject } from 'rxjs';
+import Swal from 'sweetalert2';
 
 @Component({
   selector: 'app-orders',
@@ -147,12 +148,22 @@ export class OrdersComponent implements OnInit {
 
   createOrder(): void {
     if (this.cartItems.length === 0) {
-      alert('Please add items to cart');
+      Swal.fire({
+        icon: 'warning',
+        title: 'Empty Cart',
+        text: 'Please add items to cart',
+        confirmButtonColor: '#667eea'
+      });
       return;
     }
     
     if (!this.orderForm.customerFullName || this.orderForm.customerFullName.trim().length === 0) {
-      alert('Please enter customer information before completing the order');
+      Swal.fire({
+        icon: 'warning',
+        title: 'Customer Information Required',
+        text: 'Please enter customer information before completing the order',
+        confirmButtonColor: '#667eea'
+      });
       this.showCustomerForm = true;
       return;
     }
@@ -160,22 +171,35 @@ export class OrdersComponent implements OnInit {
     this.orderForm.items = this.cartItems;
     this.orderService.createOrder(this.orderForm).subscribe({
       next: (order) => {
-        alert('Order created successfully! Invoice has been automatically generated.');
-        
-        // Automatically print invoice if invoice ID is available
-        if (order.invoiceId) {
-          // Small delay to ensure invoice is fully created
-          setTimeout(() => {
-            this.invoiceService.openInvoicePrintWindow(order.invoiceId!);
-          }, 500);
-        }
+        // Ask if user wants to print receipt
+        Swal.fire({
+          icon: 'success',
+          title: 'Order Created Successfully!',
+          text: 'Do you want to print the receipt?',
+          showCancelButton: true,
+          confirmButtonColor: '#667eea',
+          cancelButtonColor: '#6c757d',
+          confirmButtonText: 'Yes, print receipt!',
+          cancelButtonText: 'No, thanks'
+        }).then((result) => {
+          if (result.isConfirmed && order.invoiceId) {
+            // Small delay to ensure invoice is fully created
+            setTimeout(() => {
+              this.invoiceService.openInvoicePrintWindow(order.invoiceId!);
+            }, 300);
+          }
+        });
         
         this.loadOrders();
         this.resetForm();
       },
       error: (error) => {
-        console.error('Error creating order:', error);
-        alert('Error creating order. Please try again.');
+        Swal.fire({
+          icon: 'error',
+          title: 'Error Creating Order',
+          text: 'Error creating order. Please try again.',
+          confirmButtonColor: '#667eea'
+        });
       }
     });
   }
@@ -279,24 +303,44 @@ export class OrdersComponent implements OnInit {
 
     // Validate status values
     if (this.updateStatusDto.status !== 'Paid' && this.updateStatusDto.status !== 'Pending' && this.updateStatusDto.status !== 'Cancelled') {
-      alert('Status must be either "Paid", "Pending", or "Cancelled"');
+      Swal.fire({
+        icon: 'warning',
+        title: 'Invalid Status',
+        text: 'Status must be either "Paid", "Pending", or "Cancelled"',
+        confirmButtonColor: '#667eea'
+      });
       return;
     }
 
     if (this.updateStatusDto.orderStatus !== 'Paid' && this.updateStatusDto.orderStatus !== 'Pending' && this.updateStatusDto.orderStatus !== 'Cancelled') {
-      alert('Order Status must be either "Paid", "Pending", or "Cancelled"');
+      Swal.fire({
+        icon: 'warning',
+        title: 'Invalid Order Status',
+        text: 'Order Status must be either "Paid", "Pending", or "Cancelled"',
+        confirmButtonColor: '#667eea'
+      });
       return;
     }
 
     this.orderService.updateOrderStatus(this.selectedOrderForUpdate.orderId, this.updateStatusDto).subscribe({
       next: () => {
-        alert('Order status updated successfully!');
+        Swal.fire({
+          icon: 'success',
+          title: 'Success!',
+          text: 'Order status updated successfully!',
+          confirmButtonColor: '#667eea',
+          timer: 2000
+        });
         this.loadOrders();
         this.cancelUpdate();
       },
       error: (error) => {
-        console.error('Error updating order status:', error);
-        alert('Error updating order status. Please try again.');
+        Swal.fire({
+          icon: 'error',
+          title: 'Error',
+          text: 'Error updating order status. Please try again.',
+          confirmButtonColor: '#667eea'
+        });
       }
     });
   }
@@ -328,23 +372,43 @@ export class OrdersComponent implements OnInit {
 
   // Quick mark as paid
   quickMarkAsPaid(order: OrderDto): void {
-    if (confirm(`Mark Order #${order.orderId} as Paid?`)) {
-      const updateDto: UpdateOrderStatusDto = {
-        status: 'Paid',
-        orderStatus: 'Paid'
-      };
-      this.orderService.updateOrderStatus(order.orderId, updateDto).subscribe({
-        next: () => {
-          alert('Order marked as Paid!');
-          this.loadOrders();
-          this.selectedOrderIds.delete(order.orderId);
-        },
-        error: (error) => {
-          console.error('Error updating order:', error);
-          alert('Error updating order status.');
-        }
-      });
-    }
+    Swal.fire({
+      title: 'Mark as Paid?',
+      text: `Mark Order #${order.orderId} as Paid?`,
+      icon: 'question',
+      showCancelButton: true,
+      confirmButtonColor: '#667eea',
+      cancelButtonColor: '#d33',
+      confirmButtonText: 'Yes, mark as paid!'
+    }).then((result) => {
+      if (result.isConfirmed) {
+        const updateDto: UpdateOrderStatusDto = {
+          status: 'Paid',
+          orderStatus: 'Paid'
+        };
+        this.orderService.updateOrderStatus(order.orderId, updateDto).subscribe({
+          next: () => {
+            Swal.fire({
+              icon: 'success',
+              title: 'Success!',
+              text: 'Order marked as Paid!',
+              confirmButtonColor: '#667eea',
+              timer: 2000
+            });
+            this.loadOrders();
+            this.selectedOrderIds.delete(order.orderId);
+          },
+          error: (error) => {
+            Swal.fire({
+              icon: 'error',
+              title: 'Error',
+              text: 'Error updating order status.',
+              confirmButtonColor: '#667eea'
+            });
+          }
+        });
+      }
+    });
   }
 
   // Bulk selection
@@ -378,58 +442,108 @@ export class OrdersComponent implements OnInit {
   // Bulk update
   bulkMarkAsPaid(): void {
     if (this.selectedOrderIds.size === 0) {
-      alert('Please select at least one order');
+      Swal.fire({
+        icon: 'warning',
+        title: 'No Orders Selected',
+        text: 'Please select at least one order',
+        confirmButtonColor: '#667eea'
+      });
       return;
     }
 
-    if (confirm(`Mark ${this.selectedOrderIds.size} order(s) as Paid?`)) {
-      const bulkUpdateDto: BulkUpdateOrderStatusDto = {
-        orderIds: Array.from(this.selectedOrderIds),
-        status: 'Paid',
-        orderStatus: 'Paid'
-      };
+    Swal.fire({
+      title: 'Mark Orders as Paid?',
+      text: `Mark ${this.selectedOrderIds.size} order(s) as Paid?`,
+      icon: 'question',
+      showCancelButton: true,
+      confirmButtonColor: '#667eea',
+      cancelButtonColor: '#d33',
+      confirmButtonText: 'Yes, mark as paid!'
+    }).then((result) => {
+      if (result.isConfirmed) {
+        const bulkUpdateDto: BulkUpdateOrderStatusDto = {
+          orderIds: Array.from(this.selectedOrderIds),
+          status: 'Paid',
+          orderStatus: 'Paid'
+        };
 
-      this.orderService.bulkUpdateOrderStatus(bulkUpdateDto).subscribe({
-        next: (response: any) => {
-          alert(`${response.updatedCount || this.selectedOrderIds.size} order(s) marked as Paid!`);
-          this.loadOrders();
-          this.selectedOrderIds.clear();
-          this.showBulkActions = false;
-        },
-        error: (error) => {
-          console.error('Error bulk updating orders:', error);
-          alert('Error updating orders. Please try again.');
-        }
-      });
-    }
+        this.orderService.bulkUpdateOrderStatus(bulkUpdateDto).subscribe({
+          next: (response: any) => {
+            Swal.fire({
+              icon: 'success',
+              title: 'Success!',
+              text: `${response.updatedCount || this.selectedOrderIds.size} order(s) marked as Paid!`,
+              confirmButtonColor: '#667eea',
+              timer: 2000
+            });
+            this.loadOrders();
+            this.selectedOrderIds.clear();
+            this.showBulkActions = false;
+          },
+          error: (error) => {
+            Swal.fire({
+              icon: 'error',
+              title: 'Error',
+              text: 'Error updating orders. Please try again.',
+              confirmButtonColor: '#667eea'
+            });
+          }
+        });
+      }
+    });
   }
 
   bulkMarkAsPending(): void {
     if (this.selectedOrderIds.size === 0) {
-      alert('Please select at least one order');
+      Swal.fire({
+        icon: 'warning',
+        title: 'No Orders Selected',
+        text: 'Please select at least one order',
+        confirmButtonColor: '#667eea'
+      });
       return;
     }
 
-    if (confirm(`Mark ${this.selectedOrderIds.size} order(s) as Pending?`)) {
-      const bulkUpdateDto: BulkUpdateOrderStatusDto = {
-        orderIds: Array.from(this.selectedOrderIds),
-        status: 'Pending',
-        orderStatus: 'Pending'
-      };
+    Swal.fire({
+      title: 'Mark Orders as Pending?',
+      text: `Mark ${this.selectedOrderIds.size} order(s) as Pending?`,
+      icon: 'question',
+      showCancelButton: true,
+      confirmButtonColor: '#667eea',
+      cancelButtonColor: '#d33',
+      confirmButtonText: 'Yes, mark as pending!'
+    }).then((result) => {
+      if (result.isConfirmed) {
+        const bulkUpdateDto: BulkUpdateOrderStatusDto = {
+          orderIds: Array.from(this.selectedOrderIds),
+          status: 'Pending',
+          orderStatus: 'Pending'
+        };
 
-      this.orderService.bulkUpdateOrderStatus(bulkUpdateDto).subscribe({
-        next: (response: any) => {
-          alert(`${response.updatedCount || this.selectedOrderIds.size} order(s) marked as Pending!`);
-          this.loadOrders();
-          this.selectedOrderIds.clear();
-          this.showBulkActions = false;
-        },
-        error: (error) => {
-          console.error('Error bulk updating orders:', error);
-          alert('Error updating orders. Please try again.');
-        }
-      });
-    }
+        this.orderService.bulkUpdateOrderStatus(bulkUpdateDto).subscribe({
+          next: (response: any) => {
+            Swal.fire({
+              icon: 'success',
+              title: 'Success!',
+              text: `${response.updatedCount || this.selectedOrderIds.size} order(s) marked as Pending!`,
+              confirmButtonColor: '#667eea',
+              timer: 2000
+            });
+            this.loadOrders();
+            this.selectedOrderIds.clear();
+            this.showBulkActions = false;
+          },
+          error: (error) => {
+            Swal.fire({
+              icon: 'error',
+              title: 'Error',
+              text: 'Error updating orders. Please try again.',
+              confirmButtonColor: '#667eea'
+            });
+          }
+        });
+      }
+    });
   }
 
   clearSelection(): void {

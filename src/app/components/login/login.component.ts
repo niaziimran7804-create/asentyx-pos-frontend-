@@ -2,6 +2,7 @@ import { Component } from '@angular/core';
 import { Router } from '@angular/router';
 import { FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { AuthService } from '../../services/auth.service';
+import Swal from 'sweetalert2';
 
 @Component({
   selector: 'app-login',
@@ -38,7 +39,12 @@ export class LoginComponent {
         error: (error) => {
           this.isLoading = false;
           this.errorMessage = 'Invalid credentials. Please try again.';
-          console.error('Login error:', error);
+          Swal.fire({
+            icon: 'error',
+            title: 'Login Failed',
+            text: 'Invalid credentials. Please try again.',
+            confirmButtonColor: '#667eea'
+          });
         }
       });
     } else {

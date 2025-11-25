@@ -5,6 +5,7 @@ import { InvoiceDto, CreateInvoiceDto, ShopConfigurationDto, UpdateShopConfigura
 import { InvoiceFilterDto } from '../../models/invoice-filter.models';
 import { OrderDto } from '../../models/order.models';
 import { AuthService } from '../../services/auth.service';
+import Swal from 'sweetalert2';
 
 @Component({
   selector: 'app-invoices',
@@ -112,8 +113,12 @@ export class InvoicesComponent implements OnInit {
         this.showFilters = true;
       },
       error: (error) => {
-        console.error('Error filtering invoices:', error);
-        alert('Error applying filters. Please try again.');
+        Swal.fire({
+          icon: 'error',
+          title: 'Error',
+          text: 'Error applying filters. Please try again.',
+          confirmButtonColor: '#667eea'
+        });
       }
     });
   }
@@ -179,19 +184,34 @@ export class InvoicesComponent implements OnInit {
 
   createInvoice(): void {
     if (this.createInvoiceDto.orderId === 0) {
-      alert('Please select an order');
+      Swal.fire({
+        icon: 'warning',
+        title: 'Order Required',
+        text: 'Please select an order',
+        confirmButtonColor: '#667eea'
+      });
       return;
     }
 
     this.invoiceService.createInvoice(this.createInvoiceDto).subscribe({
       next: () => {
-        alert('Invoice created successfully!');
+        Swal.fire({
+          icon: 'success',
+          title: 'Success!',
+          text: 'Invoice created successfully!',
+          confirmButtonColor: '#667eea',
+          timer: 2000
+        });
         this.loadInvoices();
         this.showCreateForm = false;
       },
       error: (error) => {
-        console.error('Error creating invoice:', error);
-        alert('Error creating invoice. It may already exist for this order.');
+        Swal.fire({
+          icon: 'error',
+          title: 'Error Creating Invoice',
+          text: 'Error creating invoice. It may already exist for this order.',
+          confirmButtonColor: '#667eea'
+        });
       }
     });
   }
@@ -213,8 +233,12 @@ export class InvoicesComponent implements OnInit {
         window.URL.revokeObjectURL(url);
       },
       error: (error) => {
-        console.error('Error downloading invoice:', error);
-        alert('Error downloading invoice');
+        Swal.fire({
+          icon: 'error',
+          title: 'Download Error',
+          text: 'Error downloading invoice',
+          confirmButtonColor: '#667eea'
+        });
       }
     });
   }
@@ -264,14 +288,24 @@ export class InvoicesComponent implements OnInit {
   private updateShopConfig(dto: UpdateShopConfigurationDto): void {
     this.invoiceService.updateShopConfiguration(dto).subscribe({
       next: () => {
-        alert('Shop configuration updated successfully!');
+        Swal.fire({
+          icon: 'success',
+          title: 'Success!',
+          text: 'Shop configuration updated successfully!',
+          confirmButtonColor: '#667eea',
+          timer: 2000
+        });
         this.loadShopConfiguration();
         this.showShopConfigForm = false;
         this.logoFile = null;
       },
       error: (error) => {
-        console.error('Error updating shop configuration:', error);
-        alert('Error updating shop configuration');
+        Swal.fire({
+          icon: 'error',
+          title: 'Update Error',
+          text: 'Error updating shop configuration',
+          confirmButtonColor: '#667eea'
+        });
       }
     });
   }
@@ -325,7 +359,12 @@ export class InvoicesComponent implements OnInit {
 
   printSelectedInvoices(): void {
     if (this.selectedInvoiceIds.size === 0) {
-      alert('Please select at least one invoice to print');
+      Swal.fire({
+        icon: 'warning',
+        title: 'No Invoices Selected',
+        text: 'Please select at least one invoice to print',
+        confirmButtonColor: '#667eea'
+      });
       return;
     }
 

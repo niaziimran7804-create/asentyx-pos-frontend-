@@ -2,6 +2,7 @@ import { Component, OnInit } from '@angular/core';
 import { BarcodeService } from '../../services/barcode.service';
 import { BarCodeDto, CreateBarCodeDto, GenerateBarCodeDto } from '../../models/barcode.models';
 import { AuthService } from '../../services/auth.service';
+import Swal from 'sweetalert2';
 
 @Component({
   selector: 'app-barcodes',
@@ -83,18 +84,46 @@ export class BarcodesComponent implements OnInit {
     if (this.editingBarcode) {
       this.barcodeService.updateBarCode(this.editingBarcode.barCodeId, this.barcodeForm).subscribe({
         next: () => {
+          Swal.fire({
+            icon: 'success',
+            title: 'Success!',
+            text: 'Barcode updated successfully',
+            confirmButtonColor: '#667eea',
+            timer: 2000
+          });
           this.loadBarcodes();
           this.resetForm();
         },
-        error: (error) => console.error('Error updating barcode:', error)
+        error: (error) => {
+          Swal.fire({
+            icon: 'error',
+            title: 'Error Updating Barcode',
+            text: 'Failed to update barcode. Please try again.',
+            confirmButtonColor: '#667eea'
+          });
+        }
       });
     } else {
       this.barcodeService.createBarCode(this.barcodeForm).subscribe({
         next: () => {
+          Swal.fire({
+            icon: 'success',
+            title: 'Success!',
+            text: 'Barcode created successfully',
+            confirmButtonColor: '#667eea',
+            timer: 2000
+          });
           this.loadBarcodes();
           this.resetForm();
         },
-        error: (error) => console.error('Error creating barcode:', error)
+        error: (error) => {
+          Swal.fire({
+            icon: 'error',
+            title: 'Error Creating Barcode',
+            text: 'Failed to create barcode. Please try again.',
+            confirmButtonColor: '#667eea'
+          });
+        }
       });
     }
   }
@@ -102,20 +131,60 @@ export class BarcodesComponent implements OnInit {
   generateBarcode(): void {
     this.barcodeService.generateBarCode(this.generateForm).subscribe({
       next: () => {
+        Swal.fire({
+          icon: 'success',
+          title: 'Success!',
+          text: 'Barcode generated successfully',
+          confirmButtonColor: '#667eea',
+          timer: 2000
+        });
         this.loadBarcodes();
         this.generateForm = {};
       },
-      error: (error) => console.error('Error generating barcode:', error)
+      error: (error) => {
+        Swal.fire({
+          icon: 'error',
+          title: 'Error Generating Barcode',
+          text: 'Failed to generate barcode. Please try again.',
+          confirmButtonColor: '#667eea'
+        });
+      }
     });
   }
 
   deleteBarcode(id: number): void {
-    if (confirm('Are you sure you want to delete this barcode?')) {
-      this.barcodeService.deleteBarCode(id).subscribe({
-        next: () => this.loadBarcodes(),
-        error: (error) => console.error('Error deleting barcode:', error)
-      });
-    }
+    Swal.fire({
+      title: 'Are you sure?',
+      text: 'You won\'t be able to revert this!',
+      icon: 'warning',
+      showCancelButton: true,
+      confirmButtonColor: '#667eea',
+      cancelButtonColor: '#d33',
+      confirmButtonText: 'Yes, delete it!'
+    }).then((result) => {
+      if (result.isConfirmed) {
+        this.barcodeService.deleteBarCode(id).subscribe({
+          next: () => {
+            Swal.fire({
+              icon: 'success',
+              title: 'Deleted!',
+              text: 'Barcode has been deleted.',
+              confirmButtonColor: '#667eea',
+              timer: 2000
+            });
+            this.loadBarcodes();
+          },
+          error: (error) => {
+            Swal.fire({
+              icon: 'error',
+              title: 'Error',
+              text: 'Failed to delete barcode. Please try again.',
+              confirmButtonColor: '#667eea'
+            });
+          }
+        });
+      }
+    });
   }
 
   resetForm(): void {

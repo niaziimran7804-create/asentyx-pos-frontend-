@@ -1,6 +1,7 @@
 import { Component, OnInit } from '@angular/core';
 import { UserService } from '../../services/user.service';
 import { UserDto, CreateUserDto, UpdateUserDto } from '../../models/user.models';
+import Swal from 'sweetalert2';
 
 @Component({
   selector: 'app-users',
@@ -59,17 +60,38 @@ export class UsersComponent implements OnInit {
   loadUsers(): void {
     this.userService.getAllUsers().subscribe({
       next: (data) => this.users = data,
-      error: (error) => console.error('Error loading users:', error)
+      error: (error) => {
+        Swal.fire({
+          icon: 'error',
+          title: 'Error Loading Users',
+          text: 'Failed to load users. Please try again.',
+          confirmButtonColor: '#667eea'
+        });
+      }
     });
   }
 
   createUser(): void {
     this.userService.createUser(this.userForm).subscribe({
       next: () => {
+        Swal.fire({
+          icon: 'success',
+          title: 'Success!',
+          text: 'User created successfully',
+          confirmButtonColor: '#667eea',
+          timer: 2000
+        });
         this.loadUsers();
         this.resetForm();
       },
-      error: (error) => console.error('Error creating user:', error)
+      error: (error) => {
+        Swal.fire({
+          icon: 'error',
+          title: 'Error Creating User',
+          text: 'Failed to create user. Please try again.',
+          confirmButtonColor: '#667eea'
+        });
+      }
     });
   }
 
@@ -100,21 +122,61 @@ export class UsersComponent implements OnInit {
       };
       this.userService.updateUser(this.editingUser.id, updateDto).subscribe({
         next: () => {
+          Swal.fire({
+            icon: 'success',
+            title: 'Success!',
+            text: 'User updated successfully',
+            confirmButtonColor: '#667eea',
+            timer: 2000
+          });
           this.loadUsers();
           this.resetForm();
         },
-        error: (error) => console.error('Error updating user:', error)
+        error: (error) => {
+          Swal.fire({
+            icon: 'error',
+            title: 'Error Updating User',
+            text: 'Failed to update user. Please try again.',
+            confirmButtonColor: '#667eea'
+          });
+        }
       });
     }
   }
 
   deleteUser(id: number): void {
-    if (confirm('Are you sure you want to delete this user?')) {
-      this.userService.deleteUser(id).subscribe({
-        next: () => this.loadUsers(),
-        error: (error) => console.error('Error deleting user:', error)
-      });
-    }
+    Swal.fire({
+      title: 'Are you sure?',
+      text: 'You won\'t be able to revert this!',
+      icon: 'warning',
+      showCancelButton: true,
+      confirmButtonColor: '#667eea',
+      cancelButtonColor: '#d33',
+      confirmButtonText: 'Yes, delete it!'
+    }).then((result) => {
+      if (result.isConfirmed) {
+        this.userService.deleteUser(id).subscribe({
+          next: () => {
+            Swal.fire({
+              icon: 'success',
+              title: 'Deleted!',
+              text: 'User has been deleted.',
+              confirmButtonColor: '#667eea',
+              timer: 2000
+            });
+            this.loadUsers();
+          },
+          error: (error) => {
+            Swal.fire({
+              icon: 'error',
+              title: 'Error Deleting User',
+              text: 'Failed to delete user. Please try again.',
+              confirmButtonColor: '#667eea'
+            });
+          }
+        });
+      }
+    });
   }
 
   resetForm(): void {

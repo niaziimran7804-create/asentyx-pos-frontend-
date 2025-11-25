@@ -1,6 +1,7 @@
 import { Component, OnInit } from '@angular/core';
 import { ExpenseService } from '../../services/expense.service';
 import { ExpenseDto, CreateExpenseDto } from '../../models/expense.models';
+import Swal from 'sweetalert2';
 
 @Component({
   selector: 'app-expenses',
@@ -61,6 +62,13 @@ export class ExpensesComponent implements OnInit {
   createExpense(): void {
     this.expenseService.createExpense(this.expenseForm).subscribe({
       next: () => {
+        Swal.fire({
+          icon: 'success',
+          title: 'Success!',
+          text: 'Expense created successfully',
+          confirmButtonColor: '#667eea',
+          timer: 2000
+        });
         this.loadExpenses();
         this.resetForm();
       },
@@ -82,21 +90,61 @@ export class ExpensesComponent implements OnInit {
     if (this.editingExpense) {
       this.expenseService.updateExpense(this.editingExpense.expenseId, this.expenseForm).subscribe({
         next: () => {
+          Swal.fire({
+            icon: 'success',
+            title: 'Success!',
+            text: 'Expense updated successfully',
+            confirmButtonColor: '#667eea',
+            timer: 2000
+          });
           this.loadExpenses();
           this.resetForm();
         },
-        error: (error) => console.error('Error updating expense:', error)
+        error: (error) => {
+          Swal.fire({
+            icon: 'error',
+            title: 'Error Updating Expense',
+            text: 'Failed to update expense. Please try again.',
+            confirmButtonColor: '#667eea'
+          });
+        }
       });
     }
   }
 
   deleteExpense(id: number): void {
-    if (confirm('Are you sure you want to delete this expense?')) {
-      this.expenseService.deleteExpense(id).subscribe({
-        next: () => this.loadExpenses(),
-        error: (error) => console.error('Error deleting expense:', error)
-      });
-    }
+    Swal.fire({
+      title: 'Are you sure?',
+      text: 'You won\'t be able to revert this!',
+      icon: 'warning',
+      showCancelButton: true,
+      confirmButtonColor: '#667eea',
+      cancelButtonColor: '#d33',
+      confirmButtonText: 'Yes, delete it!'
+    }).then((result) => {
+      if (result.isConfirmed) {
+        this.expenseService.deleteExpense(id).subscribe({
+          next: () => {
+            Swal.fire({
+              icon: 'success',
+              title: 'Deleted!',
+              text: 'Expense has been deleted.',
+              confirmButtonColor: '#667eea',
+              timer: 2000
+            });
+            this.loadExpenses();
+          },
+          error: (error) => {
+            Swal.fire({
+              icon: 'error',
+              title: 'Error',
+              text: 'Failed to delete expense. Please try again.',
+              confirmButtonColor: '#667eea'
+            });
+          }
+        });
+      }
+    });
   }
 
   resetForm(): void {

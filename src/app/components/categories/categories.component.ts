@@ -6,6 +6,7 @@ import {
   CreateVendorDto, CreateBrandDto
 } from '../../models/category.models';
 import { AuthService } from '../../services/auth.service';
+import Swal from 'sweetalert2';
 
 @Component({
   selector: 'app-categories',
@@ -122,29 +123,83 @@ export class CategoriesComponent implements OnInit {
     if (this.editingItem) {
       this.categoryService.updateMainCategory(this.editingItem.mainCategoryId, this.mainCategoryForm).subscribe({
         next: () => {
+          Swal.fire({
+            icon: 'success',
+            title: 'Success!',
+            text: 'Main category updated successfully',
+            confirmButtonColor: '#667eea',
+            timer: 2000
+          });
           this.loadAllCategories();
           this.resetForm();
         },
-        error: (error) => console.error('Error updating main category:', error)
+        error: (error) => {
+          Swal.fire({
+            icon: 'error',
+            title: 'Error Updating Category',
+            text: 'Failed to update main category. Please try again.',
+            confirmButtonColor: '#667eea'
+          });
+        }
       });
     } else {
       this.categoryService.createMainCategory(this.mainCategoryForm).subscribe({
         next: () => {
+          Swal.fire({
+            icon: 'success',
+            title: 'Success!',
+            text: 'Main category created successfully',
+            confirmButtonColor: '#667eea',
+            timer: 2000
+          });
           this.loadAllCategories();
           this.resetForm();
         },
-        error: (error) => console.error('Error creating main category:', error)
+        error: (error) => {
+          Swal.fire({
+            icon: 'error',
+            title: 'Error Creating Category',
+            text: 'Failed to create main category. Please try again.',
+            confirmButtonColor: '#667eea'
+          });
+        }
       });
     }
   }
 
   deleteMainCategory(id: number): void {
-    if (confirm('Are you sure you want to delete this main category?')) {
-      this.categoryService.deleteMainCategory(id).subscribe({
-        next: () => this.loadAllCategories(),
-        error: (error) => console.error('Error deleting main category:', error)
-      });
-    }
+    Swal.fire({
+      title: 'Are you sure?',
+      text: 'You won\'t be able to revert this!',
+      icon: 'warning',
+      showCancelButton: true,
+      confirmButtonColor: '#667eea',
+      cancelButtonColor: '#d33',
+      confirmButtonText: 'Yes, delete it!'
+    }).then((result) => {
+      if (result.isConfirmed) {
+        this.categoryService.deleteMainCategory(id).subscribe({
+          next: () => {
+            Swal.fire({
+              icon: 'success',
+              title: 'Deleted!',
+              text: 'Main category has been deleted.',
+              confirmButtonColor: '#667eea',
+              timer: 2000
+            });
+            this.loadAllCategories();
+          },
+          error: (error) => {
+            Swal.fire({
+              icon: 'error',
+              title: 'Error',
+              text: 'Error deleting main category.',
+              confirmButtonColor: '#667eea'
+            });
+          }
+        });
+      }
+    });
   }
 
   // Second Category CRUD
@@ -168,29 +223,83 @@ export class CategoriesComponent implements OnInit {
     if (this.editingItem) {
       this.categoryService.updateSecondCategory(this.editingItem.secondCategoryId, this.secondCategoryForm).subscribe({
         next: () => {
+          Swal.fire({
+            icon: 'success',
+            title: 'Success!',
+            text: 'Second category updated successfully',
+            confirmButtonColor: '#667eea',
+            timer: 2000
+          });
           this.loadAllCategories();
           this.resetForm();
         },
-        error: (error) => console.error('Error updating second category:', error)
+        error: (error) => {
+          Swal.fire({
+            icon: 'error',
+            title: 'Error Updating Category',
+            text: 'Failed to update second category. Please try again.',
+            confirmButtonColor: '#667eea'
+          });
+        }
       });
     } else {
       this.categoryService.createSecondCategory(this.secondCategoryForm).subscribe({
         next: () => {
+          Swal.fire({
+            icon: 'success',
+            title: 'Success!',
+            text: 'Second category created successfully',
+            confirmButtonColor: '#667eea',
+            timer: 2000
+          });
           this.loadAllCategories();
           this.resetForm();
         },
-        error: (error) => console.error('Error creating second category:', error)
+        error: (error) => {
+          Swal.fire({
+            icon: 'error',
+            title: 'Error Creating Category',
+            text: 'Failed to create second category. Please try again.',
+            confirmButtonColor: '#667eea'
+          });
+        }
       });
     }
   }
 
   deleteSecondCategory(id: number): void {
-    if (confirm('Are you sure you want to delete this second category?')) {
-      this.categoryService.deleteSecondCategory(id).subscribe({
-        next: () => this.loadAllCategories(),
-        error: (error) => console.error('Error deleting second category:', error)
-      });
-    }
+    Swal.fire({
+      title: 'Are you sure?',
+      text: 'You won\'t be able to revert this!',
+      icon: 'warning',
+      showCancelButton: true,
+      confirmButtonColor: '#667eea',
+      cancelButtonColor: '#d33',
+      confirmButtonText: 'Yes, delete it!'
+    }).then((result) => {
+      if (result.isConfirmed) {
+        this.categoryService.deleteSecondCategory(id).subscribe({
+          next: () => {
+            Swal.fire({
+              icon: 'success',
+              title: 'Deleted!',
+              text: 'Second category has been deleted.',
+              confirmButtonColor: '#667eea',
+              timer: 2000
+            });
+            this.loadAllCategories();
+          },
+          error: (error) => {
+            Swal.fire({
+              icon: 'error',
+              title: 'Error',
+              text: 'Error deleting second category.',
+              confirmButtonColor: '#667eea'
+            });
+          }
+        });
+      }
+    });
   }
 
   // Third Category CRUD
@@ -214,29 +323,83 @@ export class CategoriesComponent implements OnInit {
     if (this.editingItem) {
       this.categoryService.updateThirdCategory(this.editingItem.thirdCategoryId, this.thirdCategoryForm).subscribe({
         next: () => {
+          Swal.fire({
+            icon: 'success',
+            title: 'Success!',
+            text: 'Third category updated successfully',
+            confirmButtonColor: '#667eea',
+            timer: 2000
+          });
           this.loadAllCategories();
           this.resetForm();
         },
-        error: (error) => console.error('Error updating third category:', error)
+        error: (error) => {
+          Swal.fire({
+            icon: 'error',
+            title: 'Error Updating Category',
+            text: 'Failed to update third category. Please try again.',
+            confirmButtonColor: '#667eea'
+          });
+        }
       });
     } else {
       this.categoryService.createThirdCategory(this.thirdCategoryForm).subscribe({
         next: () => {
+          Swal.fire({
+            icon: 'success',
+            title: 'Success!',
+            text: 'Third category created successfully',
+            confirmButtonColor: '#667eea',
+            timer: 2000
+          });
           this.loadAllCategories();
           this.resetForm();
         },
-        error: (error) => console.error('Error creating third category:', error)
+        error: (error) => {
+          Swal.fire({
+            icon: 'error',
+            title: 'Error Creating Category',
+            text: 'Failed to create third category. Please try again.',
+            confirmButtonColor: '#667eea'
+          });
+        }
       });
     }
   }
 
   deleteThirdCategory(id: number): void {
-    if (confirm('Are you sure you want to delete this third category?')) {
-      this.categoryService.deleteThirdCategory(id).subscribe({
-        next: () => this.loadAllCategories(),
-        error: (error) => console.error('Error deleting third category:', error)
-      });
-    }
+    Swal.fire({
+      title: 'Are you sure?',
+      text: 'You won\'t be able to revert this!',
+      icon: 'warning',
+      showCancelButton: true,
+      confirmButtonColor: '#667eea',
+      cancelButtonColor: '#d33',
+      confirmButtonText: 'Yes, delete it!'
+    }).then((result) => {
+      if (result.isConfirmed) {
+        this.categoryService.deleteThirdCategory(id).subscribe({
+          next: () => {
+            Swal.fire({
+              icon: 'success',
+              title: 'Deleted!',
+              text: 'Third category has been deleted.',
+              confirmButtonColor: '#667eea',
+              timer: 2000
+            });
+            this.loadAllCategories();
+          },
+          error: (error) => {
+            Swal.fire({
+              icon: 'error',
+              title: 'Error',
+              text: 'Error deleting third category.',
+              confirmButtonColor: '#667eea'
+            });
+          }
+        });
+      }
+    });
   }
 
   // Vendor CRUD
@@ -262,29 +425,83 @@ export class CategoriesComponent implements OnInit {
     if (this.editingItem) {
       this.categoryService.updateVendor(this.editingItem.vendorId, this.vendorForm).subscribe({
         next: () => {
+          Swal.fire({
+            icon: 'success',
+            title: 'Success!',
+            text: 'Vendor updated successfully',
+            confirmButtonColor: '#667eea',
+            timer: 2000
+          });
           this.loadAllCategories();
           this.resetForm();
         },
-        error: (error) => console.error('Error updating vendor:', error)
+        error: (error) => {
+          Swal.fire({
+            icon: 'error',
+            title: 'Error Updating Vendor',
+            text: 'Failed to update vendor. Please try again.',
+            confirmButtonColor: '#667eea'
+          });
+        }
       });
     } else {
       this.categoryService.createVendor(this.vendorForm).subscribe({
         next: () => {
+          Swal.fire({
+            icon: 'success',
+            title: 'Success!',
+            text: 'Vendor created successfully',
+            confirmButtonColor: '#667eea',
+            timer: 2000
+          });
           this.loadAllCategories();
           this.resetForm();
         },
-        error: (error) => console.error('Error creating vendor:', error)
+        error: (error) => {
+          Swal.fire({
+            icon: 'error',
+            title: 'Error Creating Vendor',
+            text: 'Failed to create vendor. Please try again.',
+            confirmButtonColor: '#667eea'
+          });
+        }
       });
     }
   }
 
   deleteVendor(id: number): void {
-    if (confirm('Are you sure you want to delete this vendor?')) {
-      this.categoryService.deleteVendor(id).subscribe({
-        next: () => this.loadAllCategories(),
-        error: (error) => console.error('Error deleting vendor:', error)
-      });
-    }
+    Swal.fire({
+      title: 'Are you sure?',
+      text: 'You won\'t be able to revert this!',
+      icon: 'warning',
+      showCancelButton: true,
+      confirmButtonColor: '#667eea',
+      cancelButtonColor: '#d33',
+      confirmButtonText: 'Yes, delete it!'
+    }).then((result) => {
+      if (result.isConfirmed) {
+        this.categoryService.deleteVendor(id).subscribe({
+          next: () => {
+            Swal.fire({
+              icon: 'success',
+              title: 'Deleted!',
+              text: 'Vendor has been deleted.',
+              confirmButtonColor: '#667eea',
+              timer: 2000
+            });
+            this.loadAllCategories();
+          },
+          error: (error) => {
+            Swal.fire({
+              icon: 'error',
+              title: 'Error',
+              text: 'Error deleting vendor.',
+              confirmButtonColor: '#667eea'
+            });
+          }
+        });
+      }
+    });
   }
 
   // Brand CRUD
@@ -310,29 +527,83 @@ export class CategoriesComponent implements OnInit {
     if (this.editingItem) {
       this.categoryService.updateBrand(this.editingItem.brandId, this.brandForm).subscribe({
         next: () => {
+          Swal.fire({
+            icon: 'success',
+            title: 'Success!',
+            text: 'Brand updated successfully',
+            confirmButtonColor: '#667eea',
+            timer: 2000
+          });
           this.loadAllCategories();
           this.resetForm();
         },
-        error: (error) => console.error('Error updating brand:', error)
+        error: (error) => {
+          Swal.fire({
+            icon: 'error',
+            title: 'Error Updating Brand',
+            text: 'Failed to update brand. Please try again.',
+            confirmButtonColor: '#667eea'
+          });
+        }
       });
     } else {
       this.categoryService.createBrand(this.brandForm).subscribe({
         next: () => {
+          Swal.fire({
+            icon: 'success',
+            title: 'Success!',
+            text: 'Brand created successfully',
+            confirmButtonColor: '#667eea',
+            timer: 2000
+          });
           this.loadAllCategories();
           this.resetForm();
         },
-        error: (error) => console.error('Error creating brand:', error)
+        error: (error) => {
+          Swal.fire({
+            icon: 'error',
+            title: 'Error Creating Brand',
+            text: 'Failed to create brand. Please try again.',
+            confirmButtonColor: '#667eea'
+          });
+        }
       });
     }
   }
 
   deleteBrand(id: number): void {
-    if (confirm('Are you sure you want to delete this brand?')) {
-      this.categoryService.deleteBrand(id).subscribe({
-        next: () => this.loadAllCategories(),
-        error: (error) => console.error('Error deleting brand:', error)
-      });
-    }
+    Swal.fire({
+      title: 'Are you sure?',
+      text: 'You won\'t be able to revert this!',
+      icon: 'warning',
+      showCancelButton: true,
+      confirmButtonColor: '#667eea',
+      cancelButtonColor: '#d33',
+      confirmButtonText: 'Yes, delete it!'
+    }).then((result) => {
+      if (result.isConfirmed) {
+        this.categoryService.deleteBrand(id).subscribe({
+          next: () => {
+            Swal.fire({
+              icon: 'success',
+              title: 'Deleted!',
+              text: 'Brand has been deleted.',
+              confirmButtonColor: '#667eea',
+              timer: 2000
+            });
+            this.loadAllCategories();
+          },
+          error: (error) => {
+            Swal.fire({
+              icon: 'error',
+              title: 'Error',
+              text: 'Error deleting brand.',
+              confirmButtonColor: '#667eea'
+            });
+          }
+        });
+      }
+    });
   }
 
   resetForm(): void {
