@@ -11,6 +11,8 @@ import { AuthService } from '../../services/auth.service';
 export class LoginComponent {
   loginForm: FormGroup;
   errorMessage: string = '';
+  showPassword: boolean = false;
+  isLoading: boolean = false;
 
   constructor(
     private fb: FormBuilder,
@@ -25,16 +27,34 @@ export class LoginComponent {
 
   onSubmit(): void {
     if (this.loginForm.valid) {
+      this.isLoading = true;
+      this.errorMessage = '';
+      
       this.authService.login(this.loginForm.value).subscribe({
         next: () => {
+          this.isLoading = false;
           this.router.navigate(['/dashboard']);
         },
         error: (error) => {
+          this.isLoading = false;
           this.errorMessage = 'Invalid credentials. Please try again.';
           console.error('Login error:', error);
         }
       });
+    } else {
+      this.markFormGroupTouched(this.loginForm);
     }
+  }
+
+  togglePasswordVisibility(): void {
+    this.showPassword = !this.showPassword;
+  }
+
+  private markFormGroupTouched(formGroup: FormGroup): void {
+    Object.keys(formGroup.controls).forEach(key => {
+      const control = formGroup.get(key);
+      control?.markAsTouched();
+    });
   }
 }
 

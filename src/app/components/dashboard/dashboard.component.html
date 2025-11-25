@@ -1,45 +1,137 @@
-<div class="dashboard-container">
-  <header class="dashboard-header">
-    <h1>POS Dashboard</h1>
-    <div class="user-info">
-      <span>Welcome, {{ currentUser?.firstName }} {{ currentUser?.lastName }} ({{ currentUser?.role }})</span>
-      <button class="btn btn-danger" (click)="logout()">Logout</button>
-    </div>
-  </header>
+<div style="display: flex; min-height: 100vh; background: #f8f9fa;">
+  <!-- Sidebar -->
+  <app-sidebar 
+    [menuItems]="menuItems" 
+    [role]="getUserRole()"
+    [isCollapsed]="isSidebarCollapsed"
+    (collapseChange)="onSidebarCollapse($event)">
+  </app-sidebar>
 
-  <nav class="dashboard-nav">
-    <button class="nav-btn" (click)="navigateTo('/dashboard')">Dashboard</button>
-    <button class="nav-btn" (click)="navigateTo('/products')">Products</button>
-    <button class="nav-btn" (click)="navigateTo('/orders')">Orders</button>
-    <button class="nav-btn" (click)="navigateTo('/categories')">Categories</button>
-    <button class="nav-btn" (click)="navigateTo('/barcodes')" *ngIf="isAdmin() || isCashier()">Barcodes</button>
-    <button class="nav-btn" (click)="navigateTo('/invoices')">Invoices</button>
-    <button class="nav-btn" (click)="navigateTo('/expenses')" *ngIf="isAdmin()">Expenses</button>
-    <button class="nav-btn" (click)="navigateTo('/users')" *ngIf="isAdmin()">Users</button>
-  </nav>
+  <!-- Main Content -->
+  <div style="flex: 1; display: flex; flex-direction: column; transition: margin-left 0.3s ease;" 
+       [ngStyle]="{'margin-left': sidebarWidth}">
+    <!-- Navbar -->
+    <app-navbar 
+      [sidebarWidth]="sidebarWidth"
+      [currentUser]="currentUser"
+      [notificationCount]="3">
+    </app-navbar>
 
-  <div class="stats-container">
-    <div class="stat-card">
-      <h3>Total Products</h3>
-      <p class="stat-number">{{ totalProducts }}</p>
-    </div>
-    <div class="stat-card">
-      <h3>Available Products</h3>
-      <p class="stat-number">{{ availableProducts }}</p>
-    </div>
-    <div class="stat-card">
-      <h3>Unavailable Products</h3>
-      <p class="stat-number">{{ unavailableProducts }}</p>
-    </div>
-  </div>
+    <!-- Page Content -->
+    <main style="flex: 1; overflow-y: auto; padding: 2rem; margin-top: 64px;">
+      <div class="dashboard-container">
+        <!-- Page Header -->
+        <div class="mb-4">
+          <h1 class="display-6 fw-bold">Dashboard</h1>
+          <p class="text-muted">Welcome back! Here's what's happening with your store today.</p>
+        </div>
 
-  <div class="quick-actions">
-    <h2>Quick Actions</h2>
-    <div class="action-buttons">
-      <button class="btn btn-primary" (click)="navigateTo('/orders')">Create New Order</button>
-      <button class="btn btn-success" (click)="navigateTo('/products')">Manage Products</button>
-      <button class="btn btn-primary" (click)="navigateTo('/categories')">Manage Categories</button>
-    </div>
+        <!-- KPI Cards -->
+        <div class="row g-4 mb-4">
+          <!-- Total Products -->
+          <div class="col-12 col-md-6 col-lg-4">
+            <div class="kpi-card">
+              <div class="d-flex align-items-center justify-content-between">
+                <div>
+                  <p class="text-muted mb-2 fw-medium" style="font-size: 0.875rem;">Total Products</p>
+                  <h3 class="display-5 fw-bold mb-2">{{ totalProducts }}</h3>
+                  <p class="text-muted mb-0" style="font-size: 0.875rem;">
+                    <i class="fas fa-box"></i> All products in inventory
+                  </p>
+                </div>
+                <div class="kpi-icon blue">
+                  <i class="fas fa-boxes"></i>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Available Products -->
+          <div class="col-12 col-md-6 col-lg-4">
+            <div class="kpi-card">
+              <div class="d-flex align-items-center justify-content-between">
+                <div>
+                  <p class="text-muted mb-2 fw-medium" style="font-size: 0.875rem;">Available Products</p>
+                  <h3 class="display-5 fw-bold mb-2 text-success">{{ availableProducts }}</h3>
+                  <p class="text-success mb-0" style="font-size: 0.875rem;">
+                    <i class="fas fa-check-circle"></i> Ready for sale
+                  </p>
+                </div>
+                <div class="kpi-icon green">
+                  <i class="fas fa-check-double"></i>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Unavailable Products -->
+          <div class="col-12 col-md-6 col-lg-4">
+            <div class="kpi-card">
+              <div class="d-flex align-items-center justify-content-between">
+                <div>
+                  <p class="text-muted mb-2 fw-medium" style="font-size: 0.875rem;">Unavailable Products</p>
+                  <h3 class="display-5 fw-bold mb-2 text-danger">{{ unavailableProducts }}</h3>
+                  <p class="text-danger mb-0" style="font-size: 0.875rem;">
+                    <i class="fas fa-exclamation-circle"></i> Requires attention
+                  </p>
+                </div>
+                <div class="kpi-icon red">
+                  <i class="fas fa-times-circle"></i>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Quick Actions -->
+        <div class="card">
+          <div class="card-body">
+            <h3 class="h5 fw-semibold mb-3">
+              <i class="fas fa-bolt me-2" style="color: #667eea;"></i>
+              Quick Actions
+            </h3>
+            <div class="row g-3">
+              <div class="col-12 col-sm-6 col-md-4">
+                <button class="btn btn-primary w-100 btn-animate" (click)="navigateTo('/orders')">
+                  <i class="fas fa-shopping-cart me-2"></i>
+                  Create New Order
+                </button>
+              </div>
+              <div class="col-12 col-sm-6 col-md-4">
+                <button class="btn btn-success w-100 btn-animate" (click)="navigateTo('/products')">
+                  <i class="fas fa-box me-2"></i>
+                  Manage Products
+                </button>
+              </div>
+              <div class="col-12 col-sm-6 col-md-4">
+                <button class="btn btn-info w-100 btn-animate" (click)="navigateTo('/categories')">
+                  <i class="fas fa-tags me-2"></i>
+                  Manage Categories
+                </button>
+              </div>
+              <div class="col-12 col-sm-6 col-md-4" *ngIf="isAdmin() || isCashier()">
+                <button class="btn btn-warning w-100 btn-animate" (click)="navigateTo('/barcodes')">
+                  <i class="fas fa-barcode me-2"></i>
+                  Manage Barcodes
+                </button>
+              </div>
+              <div class="col-12 col-sm-6 col-md-4">
+                <button class="btn btn-secondary w-100 btn-animate" (click)="navigateTo('/invoices')">
+                  <i class="fas fa-file-invoice me-2"></i>
+                  View Invoices
+                </button>
+              </div>
+              <div class="col-12 col-sm-6 col-md-4" *ngIf="isAdmin()">
+                <button class="btn btn-dark w-100 btn-animate" (click)="navigateTo('/expenses')">
+                  <i class="fas fa-money-bill-wave me-2"></i>
+                  Track Expenses
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </main>
   </div>
 </div>
 

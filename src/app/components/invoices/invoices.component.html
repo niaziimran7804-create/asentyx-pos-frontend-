@@ -1,237 +1,279 @@
-<div class="container">
-  <div class="header-section">
-    <h1>Invoices Management</h1>
-    <div class="button-group">
-      <button class="btn btn-success" (click)="showCreateInvoiceForm()">Create Invoice</button>
-      <button class="btn btn-info" *ngIf="isAdmin()" (click)="showShopConfigurationForm()">Shop Configuration</button>
-    </div>
-  </div>
-
-  <!-- Create Invoice Form -->
-  <div class="card" *ngIf="showCreateForm">
-    <h2>Create New Invoice</h2>
-    <form (ngSubmit)="createInvoice()">
-      <div class="form-group">
-        <label>Select Order *</label>
-        <select [(ngModel)]="createInvoiceDto.orderId" name="orderId" required>
-          <option value="0">Select Order</option>
-          <option *ngFor="let order of orders" [value]="order.orderId">
-            Order #{{ order.orderId }} - {{ order.customerFullName || 'No Customer' }} - ${{ order.totalAmount }} ({{ order.date | date:'short' }})
-          </option>
-        </select>
-      </div>
-      <div class="form-group">
-        <label>Due Date (Optional)</label>
-        <input type="date" [(ngModel)]="createInvoiceDto.dueDate" name="dueDate" />
-      </div>
-      <div class="form-actions">
-        <button type="submit" class="btn btn-primary">Create Invoice</button>
-        <button type="button" class="btn btn-danger" (click)="showCreateForm = false">Cancel</button>
-      </div>
-    </form>
-  </div>
-
-  <!-- Shop Configuration Form -->
-  <div class="card" *ngIf="showShopConfigForm && isAdmin()">
-    <h2>Shop Configuration</h2>
-    <form (ngSubmit)="saveShopConfiguration()">
-      <div class="form-group">
-        <label>Shop Name *</label>
-        <input type="text" [(ngModel)]="shopConfig.shopName" name="shopName" required />
-      </div>
-      <div class="form-group">
-        <label>Shop Address</label>
-        <textarea [(ngModel)]="shopConfig.shopAddress" name="shopAddress" rows="3"></textarea>
-      </div>
-      <div class="form-row">
-        <div class="form-group">
-          <label>Phone</label>
-          <input type="tel" [(ngModel)]="shopConfig.shopPhone" name="shopPhone" />
-        </div>
-        <div class="form-group">
-          <label>Email</label>
-          <input type="email" [(ngModel)]="shopConfig.shopEmail" name="shopEmail" />
-        </div>
-      </div>
-      <div class="form-row">
-        <div class="form-group">
-          <label>Website</label>
-          <input type="url" [(ngModel)]="shopConfig.shopWebsite" name="shopWebsite" />
-        </div>
-        <div class="form-group">
-          <label>Tax ID</label>
-          <input type="text" [(ngModel)]="shopConfig.taxId" name="taxId" />
-        </div>
-      </div>
-      <div class="form-group">
-        <label>Header Message</label>
-        <textarea [(ngModel)]="shopConfig.headerMessage" name="headerMessage" rows="2" placeholder="Message to display at top of invoice"></textarea>
-      </div>
-      <div class="form-group">
-        <label>Footer Message</label>
-        <textarea [(ngModel)]="shopConfig.footerMessage" name="footerMessage" rows="2" placeholder="Message to display at bottom of invoice"></textarea>
-      </div>
-      <div class="form-group">
-        <label>Logo</label>
-        <input type="file" accept="image/*" (change)="onLogoSelected($event)" />
-        <div *ngIf="logoPreview" class="logo-preview">
-          <img [src]="logoPreview" alt="Logo Preview" />
-        </div>
-      </div>
-      <div class="form-actions">
-        <button type="submit" class="btn btn-primary">Save Configuration</button>
-        <button type="button" class="btn btn-danger" (click)="cancelShopConfig()">Cancel</button>
-      </div>
-    </form>
-  </div>
-
-  <!-- Shop Configuration Display -->
-  <div class="card" *ngIf="!showShopConfigForm && isAdmin()">
-    <h2>Current Shop Configuration</h2>
-    <div class="shop-config-display">
-      <p><strong>Shop Name:</strong> {{ shopConfig.shopName }}</p>
-      <p *ngIf="shopConfig.shopAddress"><strong>Address:</strong> {{ shopConfig.shopAddress }}</p>
-      <p *ngIf="shopConfig.shopPhone"><strong>Phone:</strong> {{ shopConfig.shopPhone }}</p>
-      <p *ngIf="shopConfig.shopEmail"><strong>Email:</strong> {{ shopConfig.shopEmail }}</p>
-      <p *ngIf="shopConfig.shopWebsite"><strong>Website:</strong> {{ shopConfig.shopWebsite }}</p>
-      <p *ngIf="shopConfig.taxId"><strong>Tax ID:</strong> {{ shopConfig.taxId }}</p>
-    </div>
-  </div>
-
-  <!-- Filter Section -->
-  <div class="card">
-    <div class="filter-header">
-      <h2>Invoices</h2>
-      <button class="btn btn-secondary" (click)="toggleFilters()">
-        {{ showFilters ? 'Hide' : 'Show' }} Filters
-      </button>
-    </div>
-
-    <div class="filter-section" *ngIf="showFilters">
-      <form (ngSubmit)="applyFilters()">
-        <div class="filter-row">
-          <div class="filter-group">
-            <label>Min Amount</label>
-            <input type="number" [(ngModel)]="filter.minAmount" name="minAmount" step="0.01" min="0" placeholder="Min amount" />
+<div style="display: flex; min-height: 100vh; background: #f8f9fa;">
+  <app-sidebar [menuItems]="menuItems" [role]="getUserRole()" [isCollapsed]="isSidebarCollapsed" (collapseChange)="onSidebarCollapse($event)"></app-sidebar>
+  <div style="flex: 1; display: flex; flex-direction: column; transition: margin-left 0.3s ease;" [ngStyle]="{'margin-left': sidebarWidth}">
+    <app-navbar [sidebarWidth]="sidebarWidth" [currentUser]="currentUser" [notificationCount]="3"></app-navbar>
+    <main style="flex: 1; overflow-y: auto; padding: 2rem; margin-top: 64px;">
+      <div class="container-fluid">
+        <div class="mb-4 d-flex align-items-center justify-content-between">
+          <div>
+            <h1 class="display-6 fw-bold">Invoices Management</h1>
+            <p class="text-muted">Generate and manage customer invoices</p>
           </div>
-          <div class="filter-group">
-            <label>Max Amount</label>
-            <input type="number" [(ngModel)]="filter.maxAmount" name="maxAmount" step="0.01" min="0" placeholder="Max amount" />
+          <div class="d-flex gap-2">
+            <button class="btn btn-success btn-lg shadow" (click)="showCreateInvoiceForm()">
+              <i class="fas fa-plus me-2"></i>Create Invoice
+            </button>
+            <button class="btn btn-info btn-lg shadow" *ngIf="isAdmin()" (click)="showShopConfigurationForm()">
+              <i class="fas fa-cog me-2"></i>Shop Configuration
+            </button>
           </div>
         </div>
 
-        <div class="filter-row">
-          <div class="filter-group">
-            <label>Start Date</label>
-            <input type="date" [(ngModel)]="filter.startDate" name="startDate" />
+        <!-- Create Invoice Form -->
+        <div class="card shadow-sm mb-4" *ngIf="showCreateForm">
+          <div class="card-header bg-gradient">
+            <h3 class="mb-0"><i class="fas fa-file-invoice me-2"></i>Create New Invoice</h3>
           </div>
-          <div class="filter-group">
-            <label>End Date</label>
-            <input type="date" [(ngModel)]="filter.endDate" name="endDate" />
+          <div class="card-body">
+            <form (ngSubmit)="createInvoice()">
+              <div class="row g-3">
+                <div class="col-md-6">
+                  <label class="form-label fw-semibold"><i class="fas fa-shopping-cart me-2"></i>Select Order *</label>
+                  <select class="form-select" [(ngModel)]="createInvoiceDto.orderId" name="orderId" required>
+                    <option value="0">Select Order</option>
+                    <option *ngFor="let order of orders" [value]="order.orderId">
+                      Order #{{ order.orderId }} - {{ order.customerFullName || 'No Customer' }} - ${{ order.totalAmount }} ({{ order.date | date:'short' }})
+                    </option>
+                  </select>
+                </div>
+                <div class="col-md-6">
+                  <label class="form-label fw-semibold"><i class="fas fa-calendar-alt me-2"></i>Due Date (Optional)</label>
+                  <input type="date" class="form-control" [(ngModel)]="createInvoiceDto.dueDate" name="dueDate" />
+                </div>
+              </div>
+              <div class="d-flex gap-2 mt-4">
+                <button type="submit" class="btn btn-primary px-4"><i class="fas fa-save me-2"></i>Create Invoice</button>
+                <button type="button" class="btn btn-outline-danger px-4" (click)="showCreateForm = false"><i class="fas fa-times me-2"></i>Cancel</button>
+              </div>
+            </form>
           </div>
         </div>
 
-        <div class="filter-row">
-          <div class="filter-group">
-            <label>Customer Address</label>
-            <input type="text" [(ngModel)]="filter.customerAddress" name="customerAddress" placeholder="Search by address" />
+        <!-- Shop Configuration Form -->
+        <div class="card shadow-sm mb-4" *ngIf="showShopConfigForm && isAdmin()">
+          <div class="card-header bg-gradient">
+            <h3 class="mb-0"><i class="fas fa-store me-2"></i>Shop Configuration</h3>
           </div>
-          <div class="filter-group">
-            <label>Status</label>
-            <select [(ngModel)]="filter.status" name="status">
-              <option value="">All Statuses</option>
-              <option value="Pending">Pending</option>
-              <option value="Paid">Paid</option>
-              <option value="Overdue">Overdue</option>
-              <option value="Cancelled">Cancelled</option>
-            </select>
+          <div class="card-body">
+            <form (ngSubmit)="saveShopConfiguration()">
+              <div class="row g-3">
+                <div class="col-md-6">
+                  <label class="form-label fw-semibold"><i class="fas fa-store me-2"></i>Shop Name *</label>
+                  <input type="text" class="form-control" [(ngModel)]="shopConfig.shopName" name="shopName" placeholder="Enter shop name" required />
+                </div>
+                <div class="col-md-6">
+                  <label class="form-label fw-semibold"><i class="fas fa-phone me-2"></i>Phone</label>
+                  <input type="tel" class="form-control" [(ngModel)]="shopConfig.shopPhone" name="shopPhone" placeholder="Enter phone number" />
+                </div>
+                <div class="col-md-6">
+                  <label class="form-label fw-semibold"><i class="fas fa-envelope me-2"></i>Email</label>
+                  <input type="email" class="form-control" [(ngModel)]="shopConfig.shopEmail" name="shopEmail" placeholder="Enter email" />
+                </div>
+                <div class="col-md-6">
+                  <label class="form-label fw-semibold"><i class="fas fa-globe me-2"></i>Website</label>
+                  <input type="url" class="form-control" [(ngModel)]="shopConfig.shopWebsite" name="shopWebsite" placeholder="Enter website URL" />
+                </div>
+                <div class="col-md-6">
+                  <label class="form-label fw-semibold"><i class="fas fa-id-card me-2"></i>Tax ID</label>
+                  <input type="text" class="form-control" [(ngModel)]="shopConfig.taxId" name="taxId" placeholder="Enter tax ID" />
+                </div>
+                <div class="col-md-12">
+                  <label class="form-label fw-semibold"><i class="fas fa-map-marker-alt me-2"></i>Shop Address</label>
+                  <textarea class="form-control" [(ngModel)]="shopConfig.shopAddress" name="shopAddress" rows="3" placeholder="Enter shop address"></textarea>
+                </div>
+                <div class="col-md-6">
+                  <label class="form-label fw-semibold"><i class="fas fa-heading me-2"></i>Header Message</label>
+                  <textarea class="form-control" [(ngModel)]="shopConfig.headerMessage" name="headerMessage" rows="2" placeholder="Message to display at top of invoice"></textarea>
+                </div>
+                <div class="col-md-6">
+                  <label class="form-label fw-semibold"><i class="fas fa-comment me-2"></i>Footer Message</label>
+                  <textarea class="form-control" [(ngModel)]="shopConfig.footerMessage" name="footerMessage" rows="2" placeholder="Message to display at bottom of invoice"></textarea>
+                </div>
+                <div class="col-md-12">
+                  <label class="form-label fw-semibold"><i class="fas fa-image me-2"></i>Logo</label>
+                  <input type="file" class="form-control" accept="image/*" (change)="onLogoSelected($event)" />
+                  <div *ngIf="logoPreview" class="logo-preview mt-3">
+                    <img [src]="logoPreview" alt="Logo Preview" style="max-width: 200px; max-height: 100px;" class="border rounded" />
+                  </div>
+                </div>
+              </div>
+              <div class="d-flex gap-2 mt-4">
+                <button type="submit" class="btn btn-primary px-4"><i class="fas fa-save me-2"></i>Save Configuration</button>
+                <button type="button" class="btn btn-outline-danger px-4" (click)="cancelShopConfig()"><i class="fas fa-times me-2"></i>Cancel</button>
+              </div>
+            </form>
           </div>
         </div>
 
-        <div class="filter-actions">
-          <button type="submit" class="btn btn-primary">Apply Filters</button>
-          <button type="button" class="btn btn-secondary" (click)="clearFilters()">Clear Filters</button>
+        <!-- Shop Configuration Display -->
+        <div class="card shadow-sm mb-4" *ngIf="!showShopConfigForm && isAdmin()">
+          <div class="card-header bg-white">
+            <h3 class="mb-0"><i class="fas fa-store me-2"></i>Current Shop Configuration</h3>
+          </div>
+          <div class="card-body">
+            <div class="row">
+              <div class="col-md-6">
+                <p><strong><i class="fas fa-store me-2"></i>Shop Name:</strong> {{ shopConfig.shopName }}</p>
+              </div>
+              <div class="col-md-6" *ngIf="shopConfig.shopPhone">
+                <p><strong><i class="fas fa-phone me-2"></i>Phone:</strong> {{ shopConfig.shopPhone }}</p>
+              </div>
+              <div class="col-md-6" *ngIf="shopConfig.shopEmail">
+                <p><strong><i class="fas fa-envelope me-2"></i>Email:</strong> {{ shopConfig.shopEmail }}</p>
+              </div>
+              <div class="col-md-6" *ngIf="shopConfig.shopWebsite">
+                <p><strong><i class="fas fa-globe me-2"></i>Website:</strong> {{ shopConfig.shopWebsite }}</p>
+              </div>
+              <div class="col-md-6" *ngIf="shopConfig.taxId">
+                <p><strong><i class="fas fa-id-card me-2"></i>Tax ID:</strong> {{ shopConfig.taxId }}</p>
+              </div>
+              <div class="col-md-12" *ngIf="shopConfig.shopAddress">
+                <p><strong><i class="fas fa-map-marker-alt me-2"></i>Address:</strong> {{ shopConfig.shopAddress }}</p>
+              </div>
+            </div>
+          </div>
         </div>
-      </form>
-    </div>
 
-    <div class="invoice-count" *ngIf="invoices.length > 0">
-      <p>Showing {{ invoices.length }} invoice(s)</p>
-    </div>
-  </div>
+        <!-- Filter Section -->
+        <div class="card shadow-sm mb-4">
+          <div class="card-header bg-white d-flex justify-content-between align-items-center">
+            <h3 class="mb-0"><i class="fas fa-filter me-2"></i>Invoice Filters</h3>
+            <button class="btn btn-sm btn-outline-primary" (click)="toggleFilters()">
+              <i class="fas" [class.fa-chevron-down]="!showFilters" [class.fa-chevron-up]="showFilters"></i> {{ showFilters ? 'Hide' : 'Show' }} Filters
+            </button>
+          </div>
+          <div class="card-body" *ngIf="showFilters">
+            <form (ngSubmit)="applyFilters()">
+              <div class="row g-3">
+                <div class="col-md-3">
+                  <label class="form-label fw-semibold"><i class="fas fa-dollar-sign me-2"></i>Min Amount</label>
+                  <input type="number" class="form-control" [(ngModel)]="filter.minAmount" name="minAmount" step="0.01" min="0" placeholder="Min amount" />
+                </div>
+                <div class="col-md-3">
+                  <label class="form-label fw-semibold"><i class="fas fa-dollar-sign me-2"></i>Max Amount</label>
+                  <input type="number" class="form-control" [(ngModel)]="filter.maxAmount" name="maxAmount" step="0.01" min="0" placeholder="Max amount" />
+                </div>
+                <div class="col-md-3">
+                  <label class="form-label fw-semibold"><i class="fas fa-calendar me-2"></i>Start Date</label>
+                  <input type="date" class="form-control" [(ngModel)]="filter.startDate" name="startDate" />
+                </div>
+                <div class="col-md-3">
+                  <label class="form-label fw-semibold"><i class="fas fa-calendar me-2"></i>End Date</label>
+                  <input type="date" class="form-control" [(ngModel)]="filter.endDate" name="endDate" />
+                </div>
+                <div class="col-md-6">
+                  <label class="form-label fw-semibold"><i class="fas fa-map-marker-alt me-2"></i>Customer Address</label>
+                  <input type="text" class="form-control" [(ngModel)]="filter.customerAddress" name="customerAddress" placeholder="Search by address" />
+                </div>
+                <div class="col-md-6">
+                  <label class="form-label fw-semibold"><i class="fas fa-info-circle me-2"></i>Status</label>
+                  <select class="form-select" [(ngModel)]="filter.status" name="status">
+                    <option value="">All Statuses</option>
+                    <option value="Pending">Pending</option>
+                    <option value="Paid">Paid</option>
+                    <option value="Overdue">Overdue</option>
+                    <option value="Cancelled">Cancelled</option>
+                  </select>
+                </div>
+              </div>
+              <div class="d-flex gap-2 mt-4">
+                <button type="submit" class="btn btn-primary px-4"><i class="fas fa-check me-2"></i>Apply Filters</button>
+                <button type="button" class="btn btn-outline-secondary px-4" (click)="clearFilters()"><i class="fas fa-redo me-2"></i>Clear Filters</button>
+              </div>
+            </form>
+          </div>
+          <div class="card-footer bg-light" *ngIf="invoices.length > 0">
+            <span class="text-muted"><i class="fas fa-list me-2"></i>Showing {{ invoices.length }} invoice(s)</span>
+          </div>
+        </div>
 
-  <!-- Bulk Actions Toolbar -->
-  <div class="bulk-actions-toolbar" *ngIf="showBulkActions">
-    <div class="bulk-info">
-      <strong>{{ selectedInvoicesCount }} invoice(s) selected</strong>
-    </div>
-    <div class="bulk-buttons">
-      <button class="btn btn-primary btn-sm" (click)="printSelectedInvoices()">
-        Print Selected ({{ selectedInvoicesCount }})
-      </button>
-      <button class="btn btn-secondary btn-sm" (click)="clearSelection()">
-        Clear Selection
-      </button>
-    </div>
-  </div>
+        <!-- Bulk Actions Toolbar -->
+        <div class="card shadow-sm mb-4" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white;" *ngIf="showBulkActions">
+          <div class="card-body py-3">
+            <div class="d-flex align-items-center justify-content-between">
+              <strong><i class="fas fa-check-square me-2"></i>{{ selectedInvoicesCount }} invoice(s) selected</strong>
+              <div class="d-flex gap-2">
+                <button class="btn btn-light btn-sm" (click)="printSelectedInvoices()">
+                  <i class="fas fa-print me-2"></i>Print Selected ({{ selectedInvoicesCount }})
+                </button>
+                <button class="btn btn-outline-light btn-sm" (click)="clearSelection()">
+                  <i class="fas fa-times me-2"></i>Clear Selection
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
 
-  <!-- Invoices List -->
-  <div class="card">
-    <h2>Invoice List</h2>
-    <table class="table">
-      <thead>
-        <tr>
-          <th class="checkbox-column">
-            <input type="checkbox" 
-                   [checked]="selectedInvoiceIds.size === invoices.length && invoices.length > 0"
-                   (change)="toggleSelectAll()"
-                   title="Select All">
-          </th>
-          <th>Invoice #</th>
-          <th>Order ID</th>
-          <th>Customer</th>
-          <th>Date</th>
-          <th>Due Date</th>
-          <th>Amount</th>
-          <th>Status</th>
-          <th>Actions</th>
-        </tr>
-      </thead>
-      <tbody>
-        <tr *ngFor="let invoice of invoices" 
-            [class.selected-row]="isInvoiceSelected(invoice.invoiceId)">
-          <td class="checkbox-column">
-            <input type="checkbox" 
-                   [checked]="isInvoiceSelected(invoice.invoiceId)"
-                   (change)="toggleInvoiceSelection(invoice.invoiceId)">
-          </td>
-          <td>{{ invoice.invoiceNumber }}</td>
-          <td>{{ invoice.orderId }}</td>
-          <td>{{ invoice.order.customerFullName || 'N/A' }}</td>
-          <td>{{ formatDate(invoice.invoiceDate) }}</td>
-          <td>{{ formatDate(invoice.dueDate) }}</td>
-          <td>${{ invoice.order.totalAmount }}</td>
-          <td>
-            <span class="status-badge" 
-                  [class.pending]="invoice.status === 'Pending'" 
-                  [class.paid]="invoice.status === 'Paid'" 
-                  [class.overdue]="invoice.status === 'Overdue'"
-                  [class.cancelled]="invoice.status === 'Cancelled'">
-              {{ invoice.status }}
-            </span>
-          </td>
-          <td>
-            <button class="btn btn-primary" (click)="printInvoice(invoice.invoiceId)">Print</button>
-            <button class="btn btn-info" (click)="downloadInvoice(invoice.invoiceId)">Download</button>
-          </td>
-        </tr>
-        <tr *ngIf="invoices.length === 0">
-          <td colspan="9" class="no-invoices">
-            No invoices found matching the filters.
-          </td>
-        </tr>
-      </tbody>
-    </table>
+        <!-- Invoices List -->
+        <div class="card shadow-sm">
+          <div class="card-header bg-white">
+            <h3 class="mb-0"><i class="fas fa-file-invoice me-2"></i>Invoice List ({{ invoices.length }})</h3>
+          </div>
+          <div class="card-body p-0">
+            <div class="table-responsive">
+              <table class="table table-hover mb-0">
+                <thead class="table-light">
+                  <tr>
+                    <th class="fw-semibold">
+                      <input type="checkbox" 
+                             [checked]="selectedInvoiceIds.size === invoices.length && invoices.length > 0"
+                             (change)="toggleSelectAll()"
+                             title="Select All">
+                    </th>
+                    <th class="fw-semibold"><i class="fas fa-file-invoice me-2"></i>Invoice #</th>
+                    <th class="fw-semibold"><i class="fas fa-shopping-cart me-2"></i>Order ID</th>
+                    <th class="fw-semibold"><i class="fas fa-user me-2"></i>Customer</th>
+                    <th class="fw-semibold"><i class="fas fa-calendar me-2"></i>Date</th>
+                    <th class="fw-semibold"><i class="fas fa-calendar-alt me-2"></i>Due Date</th>
+                    <th class="fw-semibold"><i class="fas fa-dollar-sign me-2"></i>Amount</th>
+                    <th class="fw-semibold"><i class="fas fa-info-circle me-2"></i>Status</th>
+                    <th class="fw-semibold text-center"><i class="fas fa-cog me-2"></i>Actions</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr *ngFor="let invoice of invoices" 
+                      [class.selected-row]="isInvoiceSelected(invoice.invoiceId)"
+                      [class.table-active]="isInvoiceSelected(invoice.invoiceId)"
+                      class="align-middle">
+                    <td>
+                      <input type="checkbox" 
+                             [checked]="isInvoiceSelected(invoice.invoiceId)"
+                             (change)="toggleInvoiceSelection(invoice.invoiceId)">
+                    </td>
+                    <td class="fw-semibold">{{ invoice.invoiceNumber }}</td>
+                    <td class="fw-medium">#{{ invoice.orderId }}</td>
+                    <td>{{ invoice.order.customerFullName || 'N/A' }}</td>
+                    <td>{{ formatDate(invoice.invoiceDate) }}</td>
+                    <td>{{ formatDate(invoice.dueDate) }}</td>
+                    <td class="text-success fw-bold">${{ invoice.order.totalAmount }}</td>
+                    <td>
+                      <span class="badge" 
+                            [class.bg-warning]="invoice.status === 'Pending'" 
+                            [class.bg-success]="invoice.status === 'Paid'" 
+                            [class.bg-danger]="invoice.status === 'Overdue'"
+                            [class.bg-secondary]="invoice.status === 'Cancelled'">
+                        {{ invoice.status }}
+                      </span>
+                    </td>
+                    <td class="text-center">
+                      <div class="btn-group" role="group">
+                        <button class="btn btn-sm btn-primary" (click)="printInvoice(invoice.invoiceId)" title="Print"><i class="fas fa-print"></i></button>
+                        <button class="btn btn-sm btn-info" (click)="downloadInvoice(invoice.invoiceId)" title="Download"><i class="fas fa-download"></i></button>
+                      </div>
+                    </td>
+                  </tr>
+                  <tr *ngIf="invoices.length === 0">
+                    <td colspan="9" class="text-center text-muted py-4">
+                      <i class="fas fa-inbox fa-3x mb-3 d-block"></i>
+                      <p class="mb-0">No invoices found matching the filters.</p>
+                    </td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      </div>
+    </main>
   </div>
 </div>
-

@@ -1,0 +1,285 @@
+import { Component, Input, Output, EventEmitter } from '@angular/core';
+import { CommonModule } from '@angular/common';
+import { RouterModule } from '@angular/router';
+
+export interface MenuItem {
+  label: string;
+  icon: string;
+  route: string;
+  badge?: number;
+}
+
+@Component({
+  selector: 'app-sidebar',
+  standalone: true,
+  imports: [CommonModule, RouterModule],
+  styles: [`
+    .sidebar {
+      background: linear-gradient(180deg, #1a202c 0%, #2d3748 50%, #1a202c 100%);
+      box-shadow: 4px 0 30px rgba(0, 0, 0, 0.25);
+      transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+      border-right: 1px solid rgba(255, 255, 255, 0.1);
+      overflow-y: auto;
+      overflow-x: hidden;
+    }
+    
+    .sidebar::-webkit-scrollbar {
+      width: 6px;
+    }
+    
+    .sidebar::-webkit-scrollbar-track {
+      background: rgba(0, 0, 0, 0.2);
+    }
+    
+    .sidebar::-webkit-scrollbar-thumb {
+      background: rgba(255, 255, 255, 0.2);
+      border-radius: 3px;
+    }
+    
+    .sidebar::-webkit-scrollbar-thumb:hover {
+      background: rgba(255, 255, 255, 0.3);
+    }
+    
+    .sidebar.collapsed { width: 80px; }
+    .sidebar:not(.collapsed) { width: 280px; }
+    
+    .logo-container {
+      padding: 1.5rem;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+      background: rgba(0, 0, 0, 0.2);
+      backdrop-filter: blur(10px);
+    }
+    
+    .logo-icon {
+      width: 48px;
+      height: 48px;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      border-radius: 12px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4);
+      transition: all 0.3s ease;
+    }
+    
+    .logo-icon:hover {
+      transform: rotate(5deg) scale(1.05);
+    }
+    
+    .logo-text {
+      font-size: 1.25rem;
+      font-weight: 700;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+    
+    .role-badge {
+      font-size: 0.75rem;
+      color: rgba(255, 255, 255, 0.6);
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      font-weight: 600;
+    }
+    
+    nav {
+      padding: 1rem 0.5rem;
+    }
+    
+    .menu-item {
+      display: flex;
+      align-items: center;
+      padding: 14px 18px;
+      margin: 6px 8px;
+      border-radius: 12px;
+      color: rgba(255, 255, 255, 0.75);
+      text-decoration: none;
+      transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+      cursor: pointer;
+      position: relative;
+      overflow: hidden;
+      font-weight: 500;
+    }
+    
+    .menu-item::before {
+      content: '';
+      position: absolute;
+      left: 0;
+      top: 0;
+      height: 100%;
+      width: 4px;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      transform: scaleY(0);
+      transition: transform 0.3s ease;
+    }
+    
+    .menu-item:hover::before {
+      transform: scaleY(1);
+    }
+    
+    .menu-item:hover {
+      background: rgba(255, 255, 255, 0.12);
+      color: white;
+      transform: translateX(8px);
+      padding-left: 22px;
+    }
+    
+    .menu-item.active {
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      color: white;
+      box-shadow: 0 8px 20px rgba(102, 126, 234, 0.35);
+      transform: translateX(4px);
+    }
+    
+    .menu-item.active::before {
+      transform: scaleY(1);
+    }
+    
+    .menu-icon {
+      min-width: 24px;
+      margin-right: 14px;
+      font-size: 1.3rem;
+      transition: all 0.3s ease;
+    }
+    
+    .menu-item:hover .menu-icon {
+      transform: scale(1.1);
+    }
+    
+    .menu-item.active .menu-icon {
+      animation: iconPulse 2s ease-in-out infinite;
+    }
+    
+    @keyframes iconPulse {
+      0%, 100% { transform: scale(1); }
+      50% { transform: scale(1.1); }
+    }
+    
+    .menu-label {
+      flex: 1;
+      font-size: 0.95rem;
+      letter-spacing: 0.3px;
+    }
+    
+    .menu-badge {
+      margin-left: auto;
+      background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
+      color: white;
+      padding: 3px 10px;
+      border-radius: 20px;
+      font-size: 0.7rem;
+      font-weight: 700;
+      box-shadow: 0 2px 8px rgba(239, 68, 68, 0.4);
+      animation: badgePulse 2s ease-in-out infinite;
+    }
+    
+    @keyframes badgePulse {
+      0%, 100% { transform: scale(1); }
+      50% { transform: scale(1.08); }
+    }
+    
+    .badge-dot {
+      position: absolute;
+      top: 8px;
+      right: 8px;
+      width: 10px;
+      height: 10px;
+      background: #ef4444;
+      border-radius: 50%;
+      box-shadow: 0 0 0 3px rgba(239, 68, 68, 0.3);
+      animation: dotPulse 2s ease-in-out infinite;
+    }
+    
+    @keyframes dotPulse {
+      0%, 100% { 
+        box-shadow: 0 0 0 3px rgba(239, 68, 68, 0.3);
+      }
+      50% { 
+        box-shadow: 0 0 0 6px rgba(239, 68, 68, 0.3);
+      }
+    }
+    
+    .toggle-btn {
+      position: absolute;
+      bottom: 20px;
+      left: 50%;
+      transform: translateX(-50%);
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      border: none;
+      color: white;
+      padding: 12px 16px;
+      border-radius: 12px;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4);
+      font-size: 1rem;
+    }
+    
+    .toggle-btn:hover {
+      transform: translateX(-50%) scale(1.05);
+      box-shadow: 0 6px 20px rgba(102, 126, 234, 0.6);
+    }
+    
+    .toggle-btn:active {
+      transform: translateX(-50%) scale(0.95);
+    }
+  `],
+  template: `
+    <aside [class.collapsed]="isCollapsed" class="sidebar" style="height: 100vh; position: fixed; left: 0; top: 0; z-index: 40; transition: width 0.3s ease;">
+      <!-- Logo -->
+      <div class="logo-container">
+        <div class="d-flex align-items-center justify-content-center" *ngIf="!isCollapsed">
+          <div class="logo-icon me-3">
+            <i class="fas fa-shopping-cart text-white fs-4"></i>
+          </div>
+          <div>
+            <h1 class="logo-text mb-0">Asentyx POS</h1>
+            <p class="role-badge mb-0">{{ role }}</p>
+          </div>
+        </div>
+        <div *ngIf="isCollapsed" class="logo-icon mx-auto">
+          <i class="fas fa-shopping-cart text-white fs-4"></i>
+        </div>
+      </div>
+
+      <!-- Navigation Menu -->
+      <nav class="mt-2">
+        <ul style="list-style: none; padding: 0; margin: 0;">
+          <li *ngFor="let item of menuItems">
+            <a [routerLink]="item.route" 
+               routerLinkActive="active"
+               class="menu-item"
+               [title]="item.label">
+              <i [class]="item.icon + ' menu-icon'" [ngClass]="isCollapsed ? 'mx-auto' : ''"></i>
+              <span *ngIf="!isCollapsed" class="menu-label">{{ item.label }}</span>
+              <span *ngIf="item.badge && item.badge > 0 && !isCollapsed" 
+                    class="menu-badge">
+                {{ item.badge }}
+              </span>
+              <span *ngIf="item.badge && item.badge > 0 && isCollapsed" 
+                    class="badge-dot"></span>
+            </a>
+          </li>
+        </ul>
+      </nav>
+
+      <!-- Toggle Button -->
+      <button (click)="toggleCollapse()" 
+              class="toggle-btn">
+        <i [class]="isCollapsed ? 'fas fa-chevron-right' : 'fas fa-chevron-left'"></i>
+      </button>
+    </aside>
+  `
+})
+export class SidebarComponent {
+  @Input() menuItems: MenuItem[] = [];
+  @Input() role: string = 'Admin';
+  @Input() isCollapsed = false;
+  @Output() collapseChange = new EventEmitter<boolean>();
+
+  toggleCollapse(): void {
+    this.isCollapsed = !this.isCollapsed;
+    this.collapseChange.emit(this.isCollapsed);
+  }
+}

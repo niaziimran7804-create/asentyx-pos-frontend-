@@ -1,315 +1,470 @@
-<div class="container">
-  <h1>Categories Management</h1>
-  
-  <div class="tabs">
-    <button class="tab-btn" [class.active]="activeTab === 'main'" (click)="setActiveTab('main')">Main Categories</button>
-    <button class="tab-btn" [class.active]="activeTab === 'second'" (click)="setActiveTab('second')">Second Categories</button>
-    <button class="tab-btn" [class.active]="activeTab === 'third'" (click)="setActiveTab('third')">Third Categories</button>
-    <button class="tab-btn" [class.active]="activeTab === 'vendors'" (click)="setActiveTab('vendors')">Vendors</button>
-    <button class="tab-btn" [class.active]="activeTab === 'brands'" (click)="setActiveTab('brands')">Brands</button>
-  </div>
+<div style="display: flex; min-height: 100vh; background: #f8f9fa;">
+  <app-sidebar [menuItems]="menuItems" [role]="getUserRole()" [isCollapsed]="isSidebarCollapsed" (collapseChange)="onSidebarCollapse($event)"></app-sidebar>
+  <div style="flex: 1; display: flex; flex-direction: column; transition: margin-left 0.3s ease;" [ngStyle]="{'margin-left': sidebarWidth}">
+    <app-navbar [sidebarWidth]="sidebarWidth" [currentUser]="currentUser" [notificationCount]="3"></app-navbar>
+    <main style="flex: 1; overflow-y: auto; padding: 2rem; margin-top: 64px;">
+      <div class="container-fluid">
+        <div class="mb-4">
+          <h1 class="display-6 fw-bold">Categories Management</h1>
+          <p class="text-muted">Manage product categories, vendors, and brands</p>
+        </div>
+        
+        <div class="card shadow-sm mb-4">
+          <div class="card-body p-0">
+            <ul class="nav nav-tabs nav-fill border-0">
+              <li class="nav-item">
+                <button class="nav-link" [class.active]="activeTab === 'main'" (click)="setActiveTab('main')">
+                  <i class="fas fa-folder me-2"></i>Main Categories
+                </button>
+              </li>
+              <li class="nav-item">
+                <button class="nav-link" [class.active]="activeTab === 'second'" (click)="setActiveTab('second')">
+                  <i class="fas fa-folder-open me-2"></i>Second Categories
+                </button>
+              </li>
+              <li class="nav-item">
+                <button class="nav-link" [class.active]="activeTab === 'third'" (click)="setActiveTab('third')">
+                  <i class="fas fa-folder-plus me-2"></i>Third Categories
+                </button>
+              </li>
+              <li class="nav-item">
+                <button class="nav-link" [class.active]="activeTab === 'vendors'" (click)="setActiveTab('vendors')">
+                  <i class="fas fa-truck me-2"></i>Vendors
+                </button>
+              </li>
+              <li class="nav-item">
+                <button class="nav-link" [class.active]="activeTab === 'brands'" (click)="setActiveTab('brands')">
+                  <i class="fas fa-trademark me-2"></i>Brands
+                </button>
+              </li>
+            </ul>
+          </div>
+        </div>
 
-  <!-- Main Categories -->
-  <div class="card" *ngIf="activeTab === 'main'">
-    <div class="header-section">
-      <h2>Main Categories</h2>
-      <button class="btn btn-success" *ngIf="isAdmin()" (click)="showMainCategoryForm()">Add Main Category</button>
-    </div>
+        <!-- Main Categories -->
+        <div *ngIf="activeTab === 'main'">
+          <div class="mb-3 d-flex justify-content-end">
+            <button class="btn btn-success btn-lg shadow" *ngIf="isAdmin()" (click)="showMainCategoryForm()">
+              <i class="fas fa-plus me-2"></i>Add Main Category
+            </button>
+          </div>
 
-    <div class="card" *ngIf="showForm && formType === 'main'">
-      <h3>{{ editingItem ? 'Edit Main Category' : 'Add New Main Category' }}</h3>
-      <form (ngSubmit)="saveMainCategory()">
-        <div class="form-group">
-          <label>Name *</label>
-          <input type="text" [(ngModel)]="mainCategoryForm.mainCategoryName" name="name" required />
-        </div>
-        <div class="form-group">
-          <label>Description</label>
-          <textarea [(ngModel)]="mainCategoryForm.mainCategoryDescription" name="description"></textarea>
-        </div>
-        <div class="form-actions">
-          <button type="submit" class="btn btn-primary">{{ editingItem ? 'Update' : 'Create' }}</button>
-          <button type="button" class="btn btn-danger" (click)="resetForm()">Cancel</button>
-        </div>
-      </form>
-    </div>
+          <div class="card shadow-sm mb-4" *ngIf="showForm && formType === 'main'">
+            <div class="card-header bg-gradient">
+              <h3 class="mb-0"><i class="fas fa-folder me-2"></i>{{ editingItem ? 'Edit Main Category' : 'Add New Main Category' }}</h3>
+            </div>
+            <div class="card-body">
+              <form (ngSubmit)="saveMainCategory()">
+                <div class="row g-3">
+                  <div class="col-md-12">
+                    <label class="form-label fw-semibold"><i class="fas fa-tag me-2"></i>Name *</label>
+                    <input type="text" class="form-control" [(ngModel)]="mainCategoryForm.mainCategoryName" name="name" placeholder="Enter category name" required />
+                  </div>
+                  <div class="col-md-12">
+                    <label class="form-label fw-semibold"><i class="fas fa-info-circle me-2"></i>Description</label>
+                    <textarea class="form-control" [(ngModel)]="mainCategoryForm.mainCategoryDescription" name="description" rows="3" placeholder="Enter description"></textarea>
+                  </div>
+                </div>
+                <div class="d-flex gap-2 mt-4">
+                  <button type="submit" class="btn btn-primary px-4"><i class="fas fa-save me-2"></i>{{ editingItem ? 'Update' : 'Create' }}</button>
+                  <button type="button" class="btn btn-outline-danger px-4" (click)="resetForm()"><i class="fas fa-times me-2"></i>Cancel</button>
+                </div>
+              </form>
+            </div>
+          </div>
 
-    <table class="table">
-      <thead>
-        <tr>
-          <th>ID</th>
-          <th>Name</th>
-          <th>Description</th>
-          <th *ngIf="isAdmin()">Actions</th>
-        </tr>
-      </thead>
-      <tbody>
-        <tr *ngFor="let category of mainCategories">
-          <td>{{ category.mainCategoryId }}</td>
-          <td>{{ category.mainCategoryName }}</td>
-          <td>{{ category.mainCategoryDescription }}</td>
-          <td *ngIf="isAdmin()">
-            <button class="btn btn-primary" (click)="showMainCategoryForm(category)">Edit</button>
-            <button class="btn btn-danger" (click)="deleteMainCategory(category.mainCategoryId)">Delete</button>
-          </td>
-        </tr>
-      </tbody>
-    </table>
-  </div>
+          <div class="card shadow-sm">
+            <div class="card-header bg-white">
+              <h3 class="mb-0"><i class="fas fa-list me-2"></i>Main Categories List ({{ mainCategories.length }})</h3>
+            </div>
+            <div class="card-body p-0">
+              <div class="table-responsive">
+                <table class="table table-hover mb-0">
+                  <thead class="table-light">
+                    <tr>
+                      <th class="fw-semibold"><i class="fas fa-hashtag me-2"></i>ID</th>
+                      <th class="fw-semibold"><i class="fas fa-tag me-2"></i>Name</th>
+                      <th class="fw-semibold"><i class="fas fa-info-circle me-2"></i>Description</th>
+                      <th class="fw-semibold text-center" *ngIf="isAdmin()"><i class="fas fa-cog me-2"></i>Actions</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr *ngFor="let category of mainCategories" class="align-middle">
+                      <td class="fw-medium">#{{ category.mainCategoryId }}</td>
+                      <td class="fw-semibold">{{ category.mainCategoryName }}</td>
+                      <td>{{ category.mainCategoryDescription }}</td>
+                      <td class="text-center" *ngIf="isAdmin()">
+                        <div class="btn-group" role="group">
+                          <button class="btn btn-sm btn-primary" (click)="showMainCategoryForm(category)" title="Edit"><i class="fas fa-edit"></i></button>
+                          <button class="btn btn-sm btn-danger" (click)="deleteMainCategory(category.mainCategoryId)" title="Delete"><i class="fas fa-trash"></i></button>
+                        </div>
+                      </td>
+                    </tr>
+                    <tr *ngIf="mainCategories.length === 0">
+                      <td [attr.colspan]="isAdmin() ? 4 : 3" class="text-center text-muted py-4">
+                        <i class="fas fa-inbox fa-3x mb-3 d-block"></i>
+                        <p class="mb-0">No main categories found</p>
+                      </td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+        </div>
 
-  <!-- Second Categories -->
-  <div class="card" *ngIf="activeTab === 'second'">
-    <div class="header-section">
-      <h2>Second Categories</h2>
-      <button class="btn btn-success" *ngIf="isAdmin()" (click)="showSecondCategoryForm()">Add Second Category</button>
-    </div>
+        <!-- Second Categories -->
+        <div *ngIf="activeTab === 'second'">
+          <div class="mb-3 d-flex justify-content-end">
+            <button class="btn btn-success btn-lg shadow" *ngIf="isAdmin()" (click)="showSecondCategoryForm()">
+              <i class="fas fa-plus me-2"></i>Add Second Category
+            </button>
+          </div>
 
-    <div class="card" *ngIf="showForm && formType === 'second'">
-      <h3>{{ editingItem ? 'Edit Second Category' : 'Add New Second Category' }}</h3>
-      <form (ngSubmit)="saveSecondCategory()">
-        <div class="form-group">
-          <label>Main Category *</label>
-          <select [(ngModel)]="secondCategoryForm.mainCategoryId" name="mainCategoryId" required>
-            <option value="0">Select Main Category</option>
-            <option *ngFor="let mc of mainCategories" [value]="mc.mainCategoryId">{{ mc.mainCategoryName }}</option>
-          </select>
-        </div>
-        <div class="form-group">
-          <label>Name *</label>
-          <input type="text" [(ngModel)]="secondCategoryForm.secondCategoryName" name="name" required />
-        </div>
-        <div class="form-group">
-          <label>Description</label>
-          <textarea [(ngModel)]="secondCategoryForm.secondCategoryDescription" name="description"></textarea>
-        </div>
-        <div class="form-actions">
-          <button type="submit" class="btn btn-primary">{{ editingItem ? 'Update' : 'Create' }}</button>
-          <button type="button" class="btn btn-danger" (click)="resetForm()">Cancel</button>
-        </div>
-      </form>
-    </div>
+          <div class="card shadow-sm mb-4" *ngIf="showForm && formType === 'second'">
+            <div class="card-header bg-gradient">
+              <h3 class="mb-0"><i class="fas fa-folder-open me-2"></i>{{ editingItem ? 'Edit Second Category' : 'Add New Second Category' }}</h3>
+            </div>
+            <div class="card-body">
+              <form (ngSubmit)="saveSecondCategory()">
+                <div class="row g-3">
+                  <div class="col-md-12">
+                    <label class="form-label fw-semibold"><i class="fas fa-folder me-2"></i>Main Category *</label>
+                    <select class="form-select" [(ngModel)]="secondCategoryForm.mainCategoryId" name="mainCategoryId" required>
+                      <option value="0">Select Main Category</option>
+                      <option *ngFor="let mc of mainCategories" [value]="mc.mainCategoryId">{{ mc.mainCategoryName }}</option>
+                    </select>
+                  </div>
+                  <div class="col-md-12">
+                    <label class="form-label fw-semibold"><i class="fas fa-tag me-2"></i>Name *</label>
+                    <input type="text" class="form-control" [(ngModel)]="secondCategoryForm.secondCategoryName" name="name" placeholder="Enter category name" required />
+                  </div>
+                  <div class="col-md-12">
+                    <label class="form-label fw-semibold"><i class="fas fa-info-circle me-2"></i>Description</label>
+                    <textarea class="form-control" [(ngModel)]="secondCategoryForm.secondCategoryDescription" name="description" rows="3" placeholder="Enter description"></textarea>
+                  </div>
+                </div>
+                <div class="d-flex gap-2 mt-4">
+                  <button type="submit" class="btn btn-primary px-4"><i class="fas fa-save me-2"></i>{{ editingItem ? 'Update' : 'Create' }}</button>
+                  <button type="button" class="btn btn-outline-danger px-4" (click)="resetForm()"><i class="fas fa-times me-2"></i>Cancel</button>
+                </div>
+              </form>
+            </div>
+          </div>
 
-    <table class="table">
-      <thead>
-        <tr>
-          <th>ID</th>
-          <th>Name</th>
-          <th>Main Category</th>
-          <th>Description</th>
-          <th *ngIf="isAdmin()">Actions</th>
-        </tr>
-      </thead>
-      <tbody>
-        <tr *ngFor="let category of secondCategories">
-          <td>{{ category.secondCategoryId }}</td>
-          <td>{{ category.secondCategoryName }}</td>
-          <td>{{ category.mainCategoryName }}</td>
-          <td>{{ category.secondCategoryDescription }}</td>
-          <td *ngIf="isAdmin()">
-            <button class="btn btn-primary" (click)="showSecondCategoryForm(category)">Edit</button>
-            <button class="btn btn-danger" (click)="deleteSecondCategory(category.secondCategoryId)">Delete</button>
-          </td>
-        </tr>
-      </tbody>
-    </table>
-  </div>
+          <div class="card shadow-sm">
+            <div class="card-header bg-white">
+              <h3 class="mb-0"><i class="fas fa-list me-2"></i>Second Categories List ({{ secondCategories.length }})</h3>
+            </div>
+            <div class="card-body p-0">
+              <div class="table-responsive">
+                <table class="table table-hover mb-0">
+                  <thead class="table-light">
+                    <tr>
+                      <th class="fw-semibold"><i class="fas fa-hashtag me-2"></i>ID</th>
+                      <th class="fw-semibold"><i class="fas fa-tag me-2"></i>Name</th>
+                      <th class="fw-semibold"><i class="fas fa-folder me-2"></i>Main Category</th>
+                      <th class="fw-semibold"><i class="fas fa-info-circle me-2"></i>Description</th>
+                      <th class="fw-semibold text-center" *ngIf="isAdmin()"><i class="fas fa-cog me-2"></i>Actions</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr *ngFor="let category of secondCategories" class="align-middle">
+                      <td class="fw-medium">#{{ category.secondCategoryId }}</td>
+                      <td class="fw-semibold">{{ category.secondCategoryName }}</td>
+                      <td><span class="badge bg-info">{{ category.mainCategoryName }}</span></td>
+                      <td>{{ category.secondCategoryDescription }}</td>
+                      <td class="text-center" *ngIf="isAdmin()">
+                        <div class="btn-group" role="group">
+                          <button class="btn btn-sm btn-primary" (click)="showSecondCategoryForm(category)" title="Edit"><i class="fas fa-edit"></i></button>
+                          <button class="btn btn-sm btn-danger" (click)="deleteSecondCategory(category.secondCategoryId)" title="Delete"><i class="fas fa-trash"></i></button>
+                        </div>
+                      </td>
+                    </tr>
+                    <tr *ngIf="secondCategories.length === 0">
+                      <td [attr.colspan]="isAdmin() ? 5 : 4" class="text-center text-muted py-4">
+                        <i class="fas fa-inbox fa-3x mb-3 d-block"></i>
+                        <p class="mb-0">No second categories found</p>
+                      </td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+        </div>
 
-  <!-- Third Categories -->
-  <div class="card" *ngIf="activeTab === 'third'">
-    <div class="header-section">
-      <h2>Third Categories</h2>
-      <button class="btn btn-success" *ngIf="isAdmin()" (click)="showThirdCategoryForm()">Add Third Category</button>
-    </div>
+        <!-- Third Categories -->
+        <div *ngIf="activeTab === 'third'">
+          <div class="mb-3 d-flex justify-content-end">
+            <button class="btn btn-success btn-lg shadow" *ngIf="isAdmin()" (click)="showThirdCategoryForm()">
+              <i class="fas fa-plus me-2"></i>Add Third Category
+            </button>
+          </div>
 
-    <div class="card" *ngIf="showForm && formType === 'third'">
-      <h3>{{ editingItem ? 'Edit Third Category' : 'Add New Third Category' }}</h3>
-      <form (ngSubmit)="saveThirdCategory()">
-        <div class="form-group">
-          <label>Second Category *</label>
-          <select [(ngModel)]="thirdCategoryForm.secondCategoryId" name="secondCategoryId" required>
-            <option value="0">Select Second Category</option>
-            <option *ngFor="let sc of secondCategories" [value]="sc.secondCategoryId">{{ sc.secondCategoryName }}</option>
-          </select>
-        </div>
-        <div class="form-group">
-          <label>Name *</label>
-          <input type="text" [(ngModel)]="thirdCategoryForm.thirdCategoryName" name="name" required />
-        </div>
-        <div class="form-group">
-          <label>Description</label>
-          <textarea [(ngModel)]="thirdCategoryForm.thirdCategoryDescription" name="description"></textarea>
-        </div>
-        <div class="form-actions">
-          <button type="submit" class="btn btn-primary">{{ editingItem ? 'Update' : 'Create' }}</button>
-          <button type="button" class="btn btn-danger" (click)="resetForm()">Cancel</button>
-        </div>
-      </form>
-    </div>
+          <div class="card shadow-sm mb-4" *ngIf="showForm && formType === 'third'">
+            <div class="card-header bg-gradient">
+              <h3 class="mb-0"><i class="fas fa-folder-plus me-2"></i>{{ editingItem ? 'Edit Third Category' : 'Add New Third Category' }}</h3>
+            </div>
+            <div class="card-body">
+              <form (ngSubmit)="saveThirdCategory()">
+                <div class="row g-3">
+                  <div class="col-md-12">
+                    <label class="form-label fw-semibold"><i class="fas fa-folder-open me-2"></i>Second Category *</label>
+                    <select class="form-select" [(ngModel)]="thirdCategoryForm.secondCategoryId" name="secondCategoryId" required>
+                      <option value="0">Select Second Category</option>
+                      <option *ngFor="let sc of secondCategories" [value]="sc.secondCategoryId">{{ sc.secondCategoryName }}</option>
+                    </select>
+                  </div>
+                  <div class="col-md-12">
+                    <label class="form-label fw-semibold"><i class="fas fa-tag me-2"></i>Name *</label>
+                    <input type="text" class="form-control" [(ngModel)]="thirdCategoryForm.thirdCategoryName" name="name" placeholder="Enter category name" required />
+                  </div>
+                  <div class="col-md-12">
+                    <label class="form-label fw-semibold"><i class="fas fa-info-circle me-2"></i>Description</label>
+                    <textarea class="form-control" [(ngModel)]="thirdCategoryForm.thirdCategoryDescription" name="description" rows="3" placeholder="Enter description"></textarea>
+                  </div>
+                </div>
+                <div class="d-flex gap-2 mt-4">
+                  <button type="submit" class="btn btn-primary px-4"><i class="fas fa-save me-2"></i>{{ editingItem ? 'Update' : 'Create' }}</button>
+                  <button type="button" class="btn btn-outline-danger px-4" (click)="resetForm()"><i class="fas fa-times me-2"></i>Cancel</button>
+                </div>
+              </form>
+            </div>
+          </div>
 
-    <table class="table">
-      <thead>
-        <tr>
-          <th>ID</th>
-          <th>Name</th>
-          <th>Second Category</th>
-          <th>Description</th>
-          <th *ngIf="isAdmin()">Actions</th>
-        </tr>
-      </thead>
-      <tbody>
-        <tr *ngFor="let category of thirdCategories">
-          <td>{{ category.thirdCategoryId }}</td>
-          <td>{{ category.thirdCategoryName }}</td>
-          <td>{{ category.secondCategoryName }}</td>
-          <td>{{ category.thirdCategoryDescription }}</td>
-          <td *ngIf="isAdmin()">
-            <button class="btn btn-primary" (click)="showThirdCategoryForm(category)">Edit</button>
-            <button class="btn btn-danger" (click)="deleteThirdCategory(category.thirdCategoryId)">Delete</button>
-          </td>
-        </tr>
-      </tbody>
-    </table>
-  </div>
+          <div class="card shadow-sm">
+            <div class="card-header bg-white">
+              <h3 class="mb-0"><i class="fas fa-list me-2"></i>Third Categories List ({{ thirdCategories.length }})</h3>
+            </div>
+            <div class="card-body p-0">
+              <div class="table-responsive">
+                <table class="table table-hover mb-0">
+                  <thead class="table-light">
+                    <tr>
+                      <th class="fw-semibold"><i class="fas fa-hashtag me-2"></i>ID</th>
+                      <th class="fw-semibold"><i class="fas fa-tag me-2"></i>Name</th>
+                      <th class="fw-semibold"><i class="fas fa-folder-open me-2"></i>Second Category</th>
+                      <th class="fw-semibold"><i class="fas fa-info-circle me-2"></i>Description</th>
+                      <th class="fw-semibold text-center" *ngIf="isAdmin()"><i class="fas fa-cog me-2"></i>Actions</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr *ngFor="let category of thirdCategories" class="align-middle">
+                      <td class="fw-medium">#{{ category.thirdCategoryId }}</td>
+                      <td class="fw-semibold">{{ category.thirdCategoryName }}</td>
+                      <td><span class="badge bg-primary">{{ category.secondCategoryName }}</span></td>
+                      <td>{{ category.thirdCategoryDescription }}</td>
+                      <td class="text-center" *ngIf="isAdmin()">
+                        <div class="btn-group" role="group">
+                          <button class="btn btn-sm btn-primary" (click)="showThirdCategoryForm(category)" title="Edit"><i class="fas fa-edit"></i></button>
+                          <button class="btn btn-sm btn-danger" (click)="deleteThirdCategory(category.thirdCategoryId)" title="Delete"><i class="fas fa-trash"></i></button>
+                        </div>
+                      </td>
+                    </tr>
+                    <tr *ngIf="thirdCategories.length === 0">
+                      <td [attr.colspan]="isAdmin() ? 5 : 4" class="text-center text-muted py-4">
+                        <i class="fas fa-inbox fa-3x mb-3 d-block"></i>
+                        <p class="mb-0">No third categories found</p>
+                      </td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+        </div>
 
-  <!-- Vendors -->
-  <div class="card" *ngIf="activeTab === 'vendors'">
-    <div class="header-section">
-      <h2>Vendors</h2>
-      <button class="btn btn-success" *ngIf="isAdmin()" (click)="showVendorForm()">Add Vendor</button>
-    </div>
+        <!-- Vendors -->
+        <div *ngIf="activeTab === 'vendors'">
+          <div class="mb-3 d-flex justify-content-end">
+            <button class="btn btn-success btn-lg shadow" *ngIf="isAdmin()" (click)="showVendorForm()">
+              <i class="fas fa-plus me-2"></i>Add Vendor
+            </button>
+          </div>
 
-    <div class="card" *ngIf="showForm && formType === 'vendor'">
-      <h3>{{ editingItem ? 'Edit Vendor' : 'Add New Vendor' }}</h3>
-      <form (ngSubmit)="saveVendor()">
-        <div class="form-group">
-          <label>Third Category *</label>
-          <select [(ngModel)]="vendorForm.thirdCategoryId" name="thirdCategoryId" required>
-            <option value="0">Select Third Category</option>
-            <option *ngFor="let tc of thirdCategories" [value]="tc.thirdCategoryId">{{ tc.thirdCategoryName }}</option>
-          </select>
-        </div>
-        <div class="form-group">
-          <label>Vendor Tag</label>
-          <input type="text" [(ngModel)]="vendorForm.vendorTag" name="tag" />
-        </div>
-        <div class="form-group">
-          <label>Name *</label>
-          <input type="text" [(ngModel)]="vendorForm.vendorName" name="name" required />
-        </div>
-        <div class="form-group">
-          <label>Description</label>
-          <textarea [(ngModel)]="vendorForm.vendorDescription" name="description"></textarea>
-        </div>
-        <div class="form-group">
-          <label>Status</label>
-          <select [(ngModel)]="vendorForm.vendorStatus" name="status">
-            <option value="YES">Active</option>
-            <option value="NO">Inactive</option>
-          </select>
-        </div>
-        <div class="form-actions">
-          <button type="submit" class="btn btn-primary">{{ editingItem ? 'Update' : 'Create' }}</button>
-          <button type="button" class="btn btn-danger" (click)="resetForm()">Cancel</button>
-        </div>
-      </form>
-    </div>
+          <div class="card shadow-sm mb-4" *ngIf="showForm && formType === 'vendor'">
+            <div class="card-header bg-gradient">
+              <h3 class="mb-0"><i class="fas fa-truck me-2"></i>{{ editingItem ? 'Edit Vendor' : 'Add New Vendor' }}</h3>
+            </div>
+            <div class="card-body">
+              <form (ngSubmit)="saveVendor()">
+                <div class="row g-3">
+                  <div class="col-md-6">
+                    <label class="form-label fw-semibold"><i class="fas fa-folder-plus me-2"></i>Third Category *</label>
+                    <select class="form-select" [(ngModel)]="vendorForm.thirdCategoryId" name="thirdCategoryId" required>
+                      <option value="0">Select Third Category</option>
+                      <option *ngFor="let tc of thirdCategories" [value]="tc.thirdCategoryId">{{ tc.thirdCategoryName }}</option>
+                    </select>
+                  </div>
+                  <div class="col-md-6">
+                    <label class="form-label fw-semibold"><i class="fas fa-tag me-2"></i>Vendor Tag</label>
+                    <input type="text" class="form-control" [(ngModel)]="vendorForm.vendorTag" name="tag" placeholder="Enter vendor tag" />
+                  </div>
+                  <div class="col-md-12">
+                    <label class="form-label fw-semibold"><i class="fas fa-truck me-2"></i>Name *</label>
+                    <input type="text" class="form-control" [(ngModel)]="vendorForm.vendorName" name="name" placeholder="Enter vendor name" required />
+                  </div>
+                  <div class="col-md-12">
+                    <label class="form-label fw-semibold"><i class="fas fa-info-circle me-2"></i>Description</label>
+                    <textarea class="form-control" [(ngModel)]="vendorForm.vendorDescription" name="description" rows="3" placeholder="Enter description"></textarea>
+                  </div>
+                  <div class="col-md-12">
+                    <label class="form-label fw-semibold"><i class="fas fa-toggle-on me-2"></i>Status</label>
+                    <select class="form-select" [(ngModel)]="vendorForm.vendorStatus" name="status">
+                      <option value="YES">Active</option>
+                      <option value="NO">Inactive</option>
+                    </select>
+                  </div>
+                </div>
+                <div class="d-flex gap-2 mt-4">
+                  <button type="submit" class="btn btn-primary px-4"><i class="fas fa-save me-2"></i>{{ editingItem ? 'Update' : 'Create' }}</button>
+                  <button type="button" class="btn btn-outline-danger px-4" (click)="resetForm()"><i class="fas fa-times me-2"></i>Cancel</button>
+                </div>
+              </form>
+            </div>
+          </div>
 
-    <table class="table">
-      <thead>
-        <tr>
-          <th>ID</th>
-          <th>Tag</th>
-          <th>Name</th>
-          <th>Third Category</th>
-          <th>Status</th>
-          <th>Register Date</th>
-          <th *ngIf="isAdmin()">Actions</th>
-        </tr>
-      </thead>
-      <tbody>
-        <tr *ngFor="let vendor of vendors">
-          <td>{{ vendor.vendorId }}</td>
-          <td>{{ vendor.vendorTag }}</td>
-          <td>{{ vendor.vendorName }}</td>
-          <td>{{ vendor.thirdCategoryName }}</td>
-          <td>{{ vendor.vendorStatus }}</td>
-          <td>{{ vendor.registerDate | date:'short' }}</td>
-          <td *ngIf="isAdmin()">
-            <button class="btn btn-primary" (click)="showVendorForm(vendor)">Edit</button>
-            <button class="btn btn-danger" (click)="deleteVendor(vendor.vendorId)">Delete</button>
-          </td>
-        </tr>
-      </tbody>
-    </table>
-  </div>
+          <div class="card shadow-sm">
+            <div class="card-header bg-white">
+              <h3 class="mb-0"><i class="fas fa-list me-2"></i>Vendors List ({{ vendors.length }})</h3>
+            </div>
+            <div class="card-body p-0">
+              <div class="table-responsive">
+                <table class="table table-hover mb-0">
+                  <thead class="table-light">
+                    <tr>
+                      <th class="fw-semibold"><i class="fas fa-hashtag me-2"></i>ID</th>
+                      <th class="fw-semibold"><i class="fas fa-tag me-2"></i>Tag</th>
+                      <th class="fw-semibold"><i class="fas fa-truck me-2"></i>Name</th>
+                      <th class="fw-semibold"><i class="fas fa-folder-plus me-2"></i>Third Category</th>
+                      <th class="fw-semibold"><i class="fas fa-toggle-on me-2"></i>Status</th>
+                      <th class="fw-semibold"><i class="fas fa-calendar me-2"></i>Register Date</th>
+                      <th class="fw-semibold text-center" *ngIf="isAdmin()"><i class="fas fa-cog me-2"></i>Actions</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr *ngFor="let vendor of vendors" class="align-middle">
+                      <td class="fw-medium">#{{ vendor.vendorId }}</td>
+                      <td><span class="badge bg-secondary">{{ vendor.vendorTag }}</span></td>
+                      <td class="fw-semibold">{{ vendor.vendorName }}</td>
+                      <td><span class="badge bg-primary">{{ vendor.thirdCategoryName }}</span></td>
+                      <td><span class="badge" [class.bg-success]="vendor.vendorStatus === 'YES'" [class.bg-secondary]="vendor.vendorStatus !== 'YES'">{{ vendor.vendorStatus === 'YES' ? 'Active' : 'Inactive' }}</span></td>
+                      <td>{{ vendor.registerDate | date:'short' }}</td>
+                      <td class="text-center" *ngIf="isAdmin()">
+                        <div class="btn-group" role="group">
+                          <button class="btn btn-sm btn-primary" (click)="showVendorForm(vendor)" title="Edit"><i class="fas fa-edit"></i></button>
+                          <button class="btn btn-sm btn-danger" (click)="deleteVendor(vendor.vendorId)" title="Delete"><i class="fas fa-trash"></i></button>
+                        </div>
+                      </td>
+                    </tr>
+                    <tr *ngIf="vendors.length === 0">
+                      <td [attr.colspan]="isAdmin() ? 7 : 6" class="text-center text-muted py-4">
+                        <i class="fas fa-inbox fa-3x mb-3 d-block"></i>
+                        <p class="mb-0">No vendors found</p>
+                      </td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+        </div>
 
-  <!-- Brands -->
-  <div class="card" *ngIf="activeTab === 'brands'">
-    <div class="header-section">
-      <h2>Brands</h2>
-      <button class="btn btn-success" *ngIf="isAdmin()" (click)="showBrandForm()">Add Brand</button>
-    </div>
+        <!-- Brands -->
+        <div *ngIf="activeTab === 'brands'">
+          <div class="mb-3 d-flex justify-content-end">
+            <button class="btn btn-success btn-lg shadow" *ngIf="isAdmin()" (click)="showBrandForm()">
+              <i class="fas fa-plus me-2"></i>Add Brand
+            </button>
+          </div>
 
-    <div class="card" *ngIf="showForm && formType === 'brand'">
-      <h3>{{ editingItem ? 'Edit Brand' : 'Add New Brand' }}</h3>
-      <form (ngSubmit)="saveBrand()">
-        <div class="form-group">
-          <label>Vendor *</label>
-          <select [(ngModel)]="brandForm.vendorId" name="vendorId" required>
-            <option value="0">Select Vendor</option>
-            <option *ngFor="let vendor of vendors" [value]="vendor.vendorId">{{ vendor.vendorName }}</option>
-          </select>
-        </div>
-        <div class="form-group">
-          <label>Brand Tag</label>
-          <input type="text" [(ngModel)]="brandForm.brandTag" name="tag" />
-        </div>
-        <div class="form-group">
-          <label>Name *</label>
-          <input type="text" [(ngModel)]="brandForm.brandName" name="name" required />
-        </div>
-        <div class="form-group">
-          <label>Description</label>
-          <textarea [(ngModel)]="brandForm.brandDescription" name="description"></textarea>
-        </div>
-        <div class="form-group">
-          <label>Status</label>
-          <select [(ngModel)]="brandForm.brandStatus" name="status">
-            <option value="YES">Active</option>
-            <option value="NO">Inactive</option>
-          </select>
-        </div>
-        <div class="form-actions">
-          <button type="submit" class="btn btn-primary">{{ editingItem ? 'Update' : 'Create' }}</button>
-          <button type="button" class="btn btn-danger" (click)="resetForm()">Cancel</button>
-        </div>
-      </form>
-    </div>
+          <div class="card shadow-sm mb-4" *ngIf="showForm && formType === 'brand'">
+            <div class="card-header bg-gradient">
+              <h3 class="mb-0"><i class="fas fa-trademark me-2"></i>{{ editingItem ? 'Edit Brand' : 'Add New Brand' }}</h3>
+            </div>
+            <div class="card-body">
+              <form (ngSubmit)="saveBrand()">
+                <div class="row g-3">
+                  <div class="col-md-6">
+                    <label class="form-label fw-semibold"><i class="fas fa-truck me-2"></i>Vendor *</label>
+                    <select class="form-select" [(ngModel)]="brandForm.vendorId" name="vendorId" required>
+                      <option value="0">Select Vendor</option>
+                      <option *ngFor="let vendor of vendors" [value]="vendor.vendorId">{{ vendor.vendorName }}</option>
+                    </select>
+                  </div>
+                  <div class="col-md-6">
+                    <label class="form-label fw-semibold"><i class="fas fa-tag me-2"></i>Brand Tag</label>
+                    <input type="text" class="form-control" [(ngModel)]="brandForm.brandTag" name="tag" placeholder="Enter brand tag" />
+                  </div>
+                  <div class="col-md-12">
+                    <label class="form-label fw-semibold"><i class="fas fa-trademark me-2"></i>Name *</label>
+                    <input type="text" class="form-control" [(ngModel)]="brandForm.brandName" name="name" placeholder="Enter brand name" required />
+                  </div>
+                  <div class="col-md-12">
+                    <label class="form-label fw-semibold"><i class="fas fa-info-circle me-2"></i>Description</label>
+                    <textarea class="form-control" [(ngModel)]="brandForm.brandDescription" name="description" rows="3" placeholder="Enter description"></textarea>
+                  </div>
+                  <div class="col-md-12">
+                    <label class="form-label fw-semibold"><i class="fas fa-toggle-on me-2"></i>Status</label>
+                    <select class="form-select" [(ngModel)]="brandForm.brandStatus" name="status">
+                      <option value="YES">Active</option>
+                      <option value="NO">Inactive</option>
+                    </select>
+                  </div>
+                </div>
+                <div class="d-flex gap-2 mt-4">
+                  <button type="submit" class="btn btn-primary px-4"><i class="fas fa-save me-2"></i>{{ editingItem ? 'Update' : 'Create' }}</button>
+                  <button type="button" class="btn btn-outline-danger px-4" (click)="resetForm()"><i class="fas fa-times me-2"></i>Cancel</button>
+                </div>
+              </form>
+            </div>
+          </div>
 
-    <table class="table">
-      <thead>
-        <tr>
-          <th>ID</th>
-          <th>Tag</th>
-          <th>Name</th>
-          <th>Vendor</th>
-          <th>Status</th>
-          <th *ngIf="isAdmin()">Actions</th>
-        </tr>
-      </thead>
-      <tbody>
-        <tr *ngFor="let brand of brands">
-          <td>{{ brand.brandId }}</td>
-          <td>{{ brand.brandTag }}</td>
-          <td>{{ brand.brandName }}</td>
-          <td>{{ brand.vendorName }}</td>
-          <td>{{ brand.brandStatus }}</td>
-          <td *ngIf="isAdmin()">
-            <button class="btn btn-primary" (click)="showBrandForm(brand)">Edit</button>
-            <button class="btn btn-danger" (click)="deleteBrand(brand.brandId)">Delete</button>
-          </td>
-        </tr>
-      </tbody>
-    </table>
+          <div class="card shadow-sm">
+            <div class="card-header bg-white">
+              <h3 class="mb-0"><i class="fas fa-list me-2"></i>Brands List ({{ brands.length }})</h3>
+            </div>
+            <div class="card-body p-0">
+              <div class="table-responsive">
+                <table class="table table-hover mb-0">
+                  <thead class="table-light">
+                    <tr>
+                      <th class="fw-semibold"><i class="fas fa-hashtag me-2"></i>ID</th>
+                      <th class="fw-semibold"><i class="fas fa-tag me-2"></i>Tag</th>
+                      <th class="fw-semibold"><i class="fas fa-trademark me-2"></i>Name</th>
+                      <th class="fw-semibold"><i class="fas fa-truck me-2"></i>Vendor</th>
+                      <th class="fw-semibold"><i class="fas fa-toggle-on me-2"></i>Status</th>
+                      <th class="fw-semibold text-center" *ngIf="isAdmin()"><i class="fas fa-cog me-2"></i>Actions</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr *ngFor="let brand of brands" class="align-middle">
+                      <td class="fw-medium">#{{ brand.brandId }}</td>
+                      <td><span class="badge bg-secondary">{{ brand.brandTag }}</span></td>
+                      <td class="fw-semibold">{{ brand.brandName }}</td>
+                      <td><span class="badge bg-info">{{ brand.vendorName }}</span></td>
+                      <td><span class="badge" [class.bg-success]="brand.brandStatus === 'YES'" [class.bg-secondary]="brand.brandStatus !== 'YES'">{{ brand.brandStatus === 'YES' ? 'Active' : 'Inactive' }}</span></td>
+                      <td class="text-center" *ngIf="isAdmin()">
+                        <div class="btn-group" role="group">
+                          <button class="btn btn-sm btn-primary" (click)="showBrandForm(brand)" title="Edit"><i class="fas fa-edit"></i></button>
+                          <button class="btn btn-sm btn-danger" (click)="deleteBrand(brand.brandId)" title="Delete"><i class="fas fa-trash"></i></button>
+                        </div>
+                      </td>
+                    </tr>
+                    <tr *ngIf="brands.length === 0">
+                      <td [attr.colspan]="isAdmin() ? 6 : 5" class="text-center text-muted py-4">
+                        <i class="fas fa-inbox fa-3x mb-3 d-block"></i>
+                        <p class="mb-0">No brands found</p>
+                      </td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </main>
   </div>
 </div>

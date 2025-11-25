@@ -3,6 +3,13 @@ import { Router } from '@angular/router';
 import { AuthService } from '../../services/auth.service';
 import { ProductService } from '../../services/product.service';
 
+interface MenuItem {
+  label: string;
+  icon: string;
+  route: string;
+  badge?: number;
+}
+
 @Component({
   selector: 'app-dashboard',
   templateUrl: './dashboard.component.html',
@@ -13,6 +20,8 @@ export class DashboardComponent implements OnInit {
   totalProducts: number = 0;
   availableProducts: number = 0;
   unavailableProducts: number = 0;
+  isSidebarCollapsed = false;
+  menuItems: MenuItem[] = [];
 
   constructor(
     private authService: AuthService,
@@ -20,10 +29,38 @@ export class DashboardComponent implements OnInit {
     private router: Router
   ) {
     this.currentUser = this.authService.getCurrentUser();
+    this.setupMenuItems();
   }
 
   ngOnInit(): void {
     this.loadStats();
+  }
+
+  setupMenuItems(): void {
+    this.menuItems = [
+      { label: 'Dashboard', icon: 'fas fa-chart-line', route: '/dashboard' },
+      { label: 'Products', icon: 'fas fa-box', route: '/products' },
+      { label: 'Orders', icon: 'fas fa-shopping-cart', route: '/orders' },
+      { label: 'Categories', icon: 'fas fa-tags', route: '/categories' },
+      { label: 'Invoices', icon: 'fas fa-file-invoice', route: '/invoices' }
+    ];
+
+    if (this.isAdmin() || this.isCashier()) {
+      this.menuItems.push({ label: 'Barcodes', icon: 'fas fa-barcode', route: '/barcodes' });
+    }
+
+    if (this.isAdmin()) {
+      this.menuItems.push({ label: 'Expenses', icon: 'fas fa-money-bill-wave', route: '/expenses' });
+      this.menuItems.push({ label: 'Users', icon: 'fas fa-users', route: '/users' });
+    }
+  }
+
+  get sidebarWidth(): string {
+    return this.isSidebarCollapsed ? '80px' : '280px';
+  }
+
+  onSidebarCollapse(collapsed: boolean): void {
+    this.isSidebarCollapsed = collapsed;
   }
 
   loadStats(): void {
@@ -47,6 +84,10 @@ export class DashboardComponent implements OnInit {
 
   isCashier(): boolean {
     return this.authService.isCashier();
+  }
+
+  getUserRole(): string {
+    return this.currentUser?.role || 'User';
   }
 }
 

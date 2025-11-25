@@ -3,6 +3,15 @@ import { ProductService } from '../../services/product.service';
 import { ProductDto, CreateProductDto } from '../../models/product.models';
 import { CategoryService } from '../../services/category.service';
 import { BrandDto } from '../../models/category.models';
+import { AuthService } from '../../services/auth.service';
+import { Router } from '@angular/router';
+
+interface MenuItem {
+  label: string;
+  icon: string;
+  route: string;
+  badge?: number;
+}
 
 @Component({
   selector: 'app-products',
@@ -15,6 +24,9 @@ export class ProductsComponent implements OnInit {
   searchKey: string = '';
   showForm: boolean = false;
   editingProduct: ProductDto | null = null;
+  currentUser: any;
+  isSidebarCollapsed = false;
+  menuItems: MenuItem[] = [];
   productForm: CreateProductDto = {
     productName: '',
     brandId: 0,
@@ -30,12 +42,56 @@ export class ProductsComponent implements OnInit {
 
   constructor(
     private productService: ProductService,
-    private categoryService: CategoryService
-  ) { }
+    private categoryService: CategoryService,
+    private authService: AuthService,
+    private router: Router
+  ) {
+    this.currentUser = this.authService.getCurrentUser();
+    this.setupMenuItems();
+  }
 
   ngOnInit(): void {
     this.loadProducts();
     this.loadBrands();
+  }
+
+  setupMenuItems(): void {
+    this.menuItems = [
+      { label: 'Dashboard', icon: 'fas fa-chart-line', route: '/dashboard' },
+      { label: 'Products', icon: 'fas fa-box', route: '/products' },
+      { label: 'Orders', icon: 'fas fa-shopping-cart', route: '/orders' },
+      { label: 'Categories', icon: 'fas fa-tags', route: '/categories' },
+      { label: 'Invoices', icon: 'fas fa-file-invoice', route: '/invoices' }
+    ];
+
+    if (this.isAdmin() || this.isCashier()) {
+      this.menuItems.push({ label: 'Barcodes', icon: 'fas fa-barcode', route: '/barcodes' });
+    }
+
+    if (this.isAdmin()) {
+      this.menuItems.push({ label: 'Expenses', icon: 'fas fa-money-bill-wave', route: '/expenses' });
+      this.menuItems.push({ label: 'Users', icon: 'fas fa-users', route: '/users' });
+    }
+  }
+
+  get sidebarWidth(): string {
+    return this.isSidebarCollapsed ? '80px' : '280px';
+  }
+
+  onSidebarCollapse(collapsed: boolean): void {
+    this.isSidebarCollapsed = collapsed;
+  }
+
+  getUserRole(): string {
+    return this.currentUser?.role || 'User';
+  }
+
+  isAdmin(): boolean {
+    return this.authService.isAdmin();
+  }
+
+  isCashier(): boolean {
+    return this.authService.isCashier();
   }
 
   loadProducts(): void {

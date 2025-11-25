@@ -1,22 +1,112 @@
 <div class="login-container">
   <div class="login-card">
-    <h2>POS System Login</h2>
-    <form [formGroup]="loginForm" (ngSubmit)="onSubmit()">
-      <div class="form-group">
-        <label for="userId">User ID</label>
-        <input type="text" id="userId" formControlName="userId" class="form-control" />
+    <!-- Header -->
+    <div class="login-header">
+      <div class="mb-3">
+        <i class="fas fa-shopping-cart fa-3x"></i>
       </div>
-      <div class="form-group">
-        <label for="password">Password</label>
-        <input type="password" id="password" formControlName="password" class="form-control" />
+      <h2>Asentyx POS</h2>
+      <p>Sign in to your account</p>
+    </div>
+
+    <!-- Body -->
+    <div class="login-body">
+      <form [formGroup]="loginForm" (ngSubmit)="onSubmit()">
+        <!-- Error Message -->
+        <div *ngIf="errorMessage" class="alert alert-danger" role="alert">
+          <i class="fas fa-exclamation-circle me-2"></i>
+          {{ errorMessage }}
+        </div>
+
+        <!-- User ID Field -->
+        <div class="form-group">
+          <label for="userId">
+            <i class="fas fa-user"></i>
+            User ID
+          </label>
+          <input
+            id="userId"
+            type="text"
+            formControlName="userId"
+            class="form-control"
+            [class.is-invalid]="loginForm.get('userId')?.invalid && loginForm.get('userId')?.touched"
+            placeholder="Enter your user ID"
+            autocomplete="username"
+          />
+          <div *ngIf="loginForm.get('userId')?.invalid && loginForm.get('userId')?.touched" 
+               class="invalid-feedback">
+            User ID is required
+          </div>
+        </div>
+
+        <!-- Password Field -->
+        <div class="form-group">
+          <label for="password">
+            <i class="fas fa-lock"></i>
+            Password
+          </label>
+          <div style="position: relative;">
+            <input
+              id="password"
+              [type]="showPassword ? 'text' : 'password'"
+              formControlName="password"
+              class="form-control"
+              [class.is-invalid]="loginForm.get('password')?.invalid && loginForm.get('password')?.touched"
+              placeholder="Enter your password"
+              autocomplete="current-password"
+            />
+            <button
+              type="button"
+              (click)="togglePasswordVisibility()"
+              style="position: absolute; right: 12px; top: 50%; transform: translateY(-50%); background: none; border: none; color: #6c757d; cursor: pointer;"
+            >
+              <i [class]="showPassword ? 'fas fa-eye-slash' : 'fas fa-eye'"></i>
+            </button>
+          </div>
+          <div *ngIf="loginForm.get('password')?.invalid && loginForm.get('password')?.touched" 
+               class="invalid-feedback">
+            Password is required
+          </div>
+        </div>
+
+        <!-- Submit Button -->
+        <button
+          type="submit"
+          [disabled]="isLoading"
+          class="btn-login"
+        >
+          <span *ngIf="!isLoading">
+            <i class="fas fa-sign-in-alt"></i>
+            Sign in
+          </span>
+          <span *ngIf="isLoading">
+            <span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>
+            Signing in...
+          </span>
+        </button>
+      </form>
+
+      <!-- Demo Info -->
+      <div class="demo-credentials mt-4">
+        <p class="text-center text-muted mb-3" style="font-size: 0.875rem; font-weight: 600;">System Access</p>
+        <div class="credential-item">
+          <span class="badge bg-primary">Admin</span>
+          <code>Use admin credentials</code>
+        </div>
+        <div class="credential-item">
+          <span class="badge bg-success">Cashier</span>
+          <code>Use cashier credentials</code>
+        </div>
       </div>
-      <div *ngIf="errorMessage" class="error-message">
-        {{ errorMessage }}
-      </div>
-      <button type="submit" class="btn btn-primary" [disabled]="!loginForm.valid">
-        Login
-      </button>
-    </form>
+    </div>
+
+    <!-- Footer -->
+    <div class="text-center pb-3">
+      <p class="text-muted mb-0" style="font-size: 0.75rem;">
+        <i class="fas fa-shield-alt me-1"></i>
+        Powered by Asentyx POS v1.0.0
+      </p>
+    </div>
   </div>
 </div>
 

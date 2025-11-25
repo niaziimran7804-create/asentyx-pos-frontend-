@@ -1,0 +1,63 @@
+<nav class="navbar-top" [ngStyle]="{'margin-left': sidebarWidth}">
+  <div style="display: flex; align-items: center; justify-content: space-between;">
+    <!-- Search Bar -->
+    <div style="flex: 1; max-width: 600px; margin-right: 1rem;">
+      <div style="position: relative;">
+        <input 
+          type="text" 
+          placeholder="Search products, customers, orders..."
+          class="search-input"
+        />
+        <i class="fas fa-search" style="position: absolute; left: 12px; top: 12px; color: #6c757d;"></i>
+      </div>
+    </div>
+
+    <!-- Right Side Icons -->
+    <div style="display: flex; align-items: center; gap: 1rem;">
+      <!-- Theme Toggle -->
+      <button (click)="toggleTheme()" 
+              class="icon-btn"
+              title="Toggle Theme">
+        <i [class]="isDarkMode ? 'fas fa-sun' : 'fas fa-moon'"></i>
+      </button>
+
+      <!-- Notifications -->
+      <div style="position: relative;">
+        <button class="icon-btn" title="Notifications">
+          <i class="fas fa-bell"></i>
+          <span *ngIf="notificationCount > 0" class="notification-badge">
+            {{ notificationCount }}
+          </span>
+        </button>
+      </div>
+
+      <!-- User Menu -->
+      <div style="position: relative;">
+        <div (click)="toggleUserMenu()" class="user-dropdown">
+          <img [src]="getUserAvatar()" 
+               alt="User Avatar" 
+               style="width: 32px; height: 32px; border-radius: 50%; margin-right: 0.75rem;" />
+          <div style="text-align: left;" class="d-none d-md-block">
+            <p style="margin: 0; font-size: 0.875rem; font-weight: 500; color: #495057;">{{ getUserFullName() }}</p>
+            <p style="margin: 0; font-size: 0.75rem; color: #6c757d;">{{ getUserRole() }}</p>
+          </div>
+          <i class="fas fa-chevron-down ms-2" style="font-size: 0.75rem; color: #6c757d;"></i>
+        </div>
+
+        <!-- Dropdown Menu -->
+        <div *ngIf="showUserMenu" class="dropdown-menu">
+          <button class="dropdown-item" (click)="closeUserMenu()">
+            <i class="fas fa-user me-2"></i> Profile
+          </button>
+          <button class="dropdown-item" (click)="closeUserMenu()">
+            <i class="fas fa-cog me-2"></i> Settings
+          </button>
+          <hr style="margin: 0.5rem 0; border-color: #dee2e6;" />
+          <button (click)="logout()" class="dropdown-item text-danger">
+            <i class="fas fa-sign-out-alt me-2"></i> Logout
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+</nav>

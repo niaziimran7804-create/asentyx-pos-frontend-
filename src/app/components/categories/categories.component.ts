@@ -32,6 +32,21 @@ export class CategoriesComponent implements OnInit {
   vendorForm: CreateVendorDto = { vendorName: '', thirdCategoryId: 0, vendorStatus: 'YES' };
   brandForm: CreateBrandDto = { brandName: '', vendorId: 0, brandStatus: 'YES' };
 
+  // Sidebar and Navbar properties
+  isSidebarCollapsed = false;
+  sidebarWidth = '280px';
+  currentUser: any;
+  menuItems: any[] = [
+    { label: 'Dashboard', icon: 'fas fa-home', route: '/dashboard' },
+    { label: 'Products', icon: 'fas fa-box', route: '/products' },
+    { label: 'Orders', icon: 'fas fa-shopping-cart', route: '/orders' },
+    { label: 'Categories', icon: 'fas fa-th-large', route: '/categories' },
+    { label: 'Barcodes', icon: 'fas fa-barcode', route: '/barcodes' },
+    { label: 'Invoices', icon: 'fas fa-file-invoice', route: '/invoices' },
+    { label: 'Expenses', icon: 'fas fa-wallet', route: '/expenses' },
+    { label: 'Users', icon: 'fas fa-users', route: '/users' }
+  ];
+
   constructor(
     private categoryService: CategoryService,
     private authService: AuthService
@@ -39,6 +54,19 @@ export class CategoriesComponent implements OnInit {
 
   ngOnInit(): void {
     this.loadAllCategories();
+    this.currentUser = {
+      name: localStorage.getItem('userName') || 'User',
+      role: localStorage.getItem('userRole') || 'cashier'
+    };
+  }
+
+  onSidebarCollapse(collapsed: boolean): void {
+    this.isSidebarCollapsed = collapsed;
+    this.sidebarWidth = collapsed ? '80px' : '280px';
+  }
+
+  getUserRole(): string {
+    return this.currentUser?.role || 'cashier';
   }
 
   loadAllCategories(): void {
