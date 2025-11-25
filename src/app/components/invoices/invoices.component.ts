@@ -51,6 +51,7 @@ export class InvoicesComponent implements OnInit {
   isSidebarCollapsed = false;
   sidebarWidth = '280px';
   currentUser: any;
+  loading: boolean = false;
   menuItems: any[] = [
     { label: 'Dashboard', icon: 'fas fa-home', route: '/dashboard' },
     { label: 'Products', icon: 'fas fa-box', route: '/products' },
@@ -69,6 +70,7 @@ export class InvoicesComponent implements OnInit {
   ) { }
 
   ngOnInit(): void {
+    this.loading = true;
     this.loadInvoices();
     this.loadOrders();
     this.loadShopConfiguration();
@@ -88,6 +90,7 @@ export class InvoicesComponent implements OnInit {
   }
 
   loadInvoices(): void {
+    this.loading = true;
     // Check if any filter is active
     const hasActiveFilters = this.filter.minAmount !== undefined || 
                             this.filter.maxAmount !== undefined ||
@@ -100,19 +103,28 @@ export class InvoicesComponent implements OnInit {
       this.applyFilters();
     } else {
       this.invoiceService.getAllInvoices().subscribe({
-        next: (data) => this.invoices = data,
-        error: (error) => console.error('Error loading invoices:', error)
+        next: (data) => {
+          this.invoices = data;
+          this.loading = false;
+        },
+        error: (error) => {
+          console.error('Error loading invoices:', error);
+          this.loading = false;
+        }
       });
     }
   }
 
   applyFilters(): void {
+    this.loading = true;
     this.invoiceService.getFilteredInvoices(this.filter).subscribe({
       next: (data) => {
         this.invoices = data;
         this.showFilters = true;
+        this.loading = false;
       },
       error: (error) => {
+        this.loading = false;
         Swal.fire({
           icon: 'error',
           title: 'Error',

@@ -27,6 +27,7 @@ export class UsersComponent implements OnInit {
   isSidebarCollapsed = false;
   sidebarWidth = '280px';
   currentUser: any;
+  loading: boolean = false;
   menuItems: any[] = [
     { label: 'Dashboard', icon: 'fas fa-home', route: '/dashboard' },
     { label: 'Products', icon: 'fas fa-box', route: '/products' },
@@ -41,6 +42,7 @@ export class UsersComponent implements OnInit {
   constructor(private userService: UserService) { }
 
   ngOnInit(): void {
+    this.loading = true;
     this.loadUsers();
     this.currentUser = {
       name: localStorage.getItem('userName') || 'User',
@@ -59,8 +61,12 @@ export class UsersComponent implements OnInit {
 
   loadUsers(): void {
     this.userService.getAllUsers().subscribe({
-      next: (data) => this.users = data,
+      next: (data) => {
+        this.users = data;
+        this.loading = false;
+      },
       error: (error) => {
+        this.loading = false;
         Swal.fire({
           icon: 'error',
           title: 'Error Loading Users',

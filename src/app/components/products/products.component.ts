@@ -28,6 +28,9 @@ export class ProductsComponent implements OnInit {
   currentUser: any;
   isSidebarCollapsed = false;
   menuItems: MenuItem[] = [];
+  selectedImage: File | null = null;
+  imagePreview: string | null = null;
+  loading: boolean = false;
   productForm: CreateProductDto = {
     productName: '',
     brandId: 0,
@@ -38,7 +41,8 @@ export class ProductsComponent implements OnInit {
     productDiscountRate: 0,
     productSize: 0,
     productWeight: 0,
-    productUnitStock: 0
+    productUnitStock: 0,
+    productImage: undefined
   };
 
   constructor(
@@ -52,6 +56,7 @@ export class ProductsComponent implements OnInit {
   }
 
   ngOnInit(): void {
+    this.loading = true;
     this.loadProducts();
     this.loadBrands();
   }
@@ -83,6 +88,20 @@ export class ProductsComponent implements OnInit {
     this.isSidebarCollapsed = collapsed;
   }
 
+  onImageSelected(event: any): void {
+    const file = event.target.files[0];
+    if (file) {
+      this.selectedImage = file;
+      
+      // Create image preview
+      const reader = new FileReader();
+      reader.onload = (e: any) => {
+        this.imagePreview = e.target.result;
+      };
+      reader.readAsDataURL(file);
+    }
+  }
+
   getUserRole(): string {
     return this.currentUser?.role || 'User';
   }
@@ -96,9 +115,16 @@ export class ProductsComponent implements OnInit {
   }
 
   loadProducts(): void {
+    this.loading = true;
     this.productService.getAllProducts(this.searchKey || undefined).subscribe({
-      next: (data) => this.products = data,
-      error: (error) => console.error('Error loading products:', error)
+      next: (data) => {
+        this.products = data;
+        this.loading = false;
+      },
+      error: (error) => {
+        console.error('Error loading products:', error);
+        this.loading = false;
+      }
     });
   }
 
@@ -114,7 +140,26 @@ export class ProductsComponent implements OnInit {
   }
 
   createProduct(): void {
-    this.productService.createProduct(this.productForm).subscribe({
+    const formData = new FormData();
+    
+    // Append all form fields
+    formData.append('productName', this.productForm.productName);
+    formData.append('brandId', this.productForm.brandId.toString());
+    formData.append('productStatus', this.productForm.productStatus);
+    formData.append('productQuantityPerUnit', this.productForm.productQuantityPerUnit.toString());
+    formData.append('productPerUnitPrice', this.productForm.productPerUnitPrice.toString());
+    formData.append('productMSRP', this.productForm.productMSRP.toString());
+    formData.append('productDiscountRate', this.productForm.productDiscountRate.toString());
+    formData.append('productSize', this.productForm.productSize.toString());
+    formData.append('productWeight', this.productForm.productWeight.toString());
+    formData.append('productUnitStock', this.productForm.productUnitStock.toString());
+    
+    // Append image file if selected
+    if (this.selectedImage) {
+      formData.append('image', this.selectedImage);
+    }
+    
+    this.productService.createProduct(formData).subscribe({
       next: () => {
         Swal.fire({
           icon: 'success',
@@ -139,6 +184,13 @@ export class ProductsComponent implements OnInit {
 
   editProduct(product: ProductDto): void {
     this.editingProduct = product;
+    this.showForm = true;
+    // Set image preview from existing product image (base64)
+    if (product.productImageBase64) {
+      this.imagePreview = 'data:image/jpeg;base64,' + product.productImageBase64;
+    } else {
+      this.imagePreview = null;
+    }
     this.productForm = {
       productName: product.productName,
       brandId: product.brandId,
@@ -150,14 +202,34 @@ export class ProductsComponent implements OnInit {
       productSize: product.productSize,
       productColor: product.productColor,
       productWeight: product.productWeight,
-      productUnitStock: product.productUnitStock
+      productUnitStock: product.productUnitStock,
+      productImage: product.productImage
     };
     this.showForm = true;
   }
 
   updateProduct(): void {
     if (this.editingProduct) {
-      this.productService.updateProduct(this.editingProduct.productId, this.productForm).subscribe({
+      const formData = new FormData();
+      
+      // Append all form fields
+      formData.append('productName', this.productForm.productName);
+      formData.append('brandId', this.productForm.brandId.toString());
+      formData.append('productStatus', this.productForm.productStatus);
+      formData.append('productQuantityPerUnit', this.productForm.productQuantityPerUnit.toString());
+      formData.append('productPerUnitPrice', this.productForm.productPerUnitPrice.toString());
+      formData.append('productMSRP', this.productForm.productMSRP.toString());
+      formData.append('productDiscountRate', this.productForm.productDiscountRate.toString());
+      formData.append('productSize', this.productForm.productSize.toString());
+      formData.append('productWeight', this.productForm.productWeight.toString());
+      formData.append('productUnitStock', this.productForm.productUnitStock.toString());
+      
+      // Append new image file if selected
+      if (this.selectedImage) {
+        formData.append('image', this.selectedImage);
+      }
+      
+      this.productService.updateProduct(this.editingProduct.productId, formData).subscribe({
         next: () => {
           Swal.fire({
             icon: 'success',
@@ -219,6 +291,8 @@ export class ProductsComponent implements OnInit {
   resetForm(): void {
     this.showForm = false;
     this.editingProduct = null;
+    this.selectedImage = null;
+    this.imagePreview = null;
     this.productForm = {
       productName: '',
       brandId: 0,
@@ -229,7 +303,8 @@ export class ProductsComponent implements OnInit {
       productDiscountRate: 0,
       productSize: 0,
       productWeight: 0,
-      productUnitStock: 0
+      productUnitStock: 0,
+      productImage: undefined
     };
   }
 }

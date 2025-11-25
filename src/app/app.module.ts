@@ -3,6 +3,7 @@ import { BrowserModule } from '@angular/platform-browser';
 import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
 import { HttpClientModule, HTTP_INTERCEPTORS } from '@angular/common/http';
 import { FormsModule, ReactiveFormsModule } from '@angular/forms';
+import { NgApexchartsModule } from 'ng-apexcharts';
 import { AppRoutingModule } from './app-routing.module';
 import { AppComponent } from './app.component';
 import { LoginComponent } from './components/login/login.component';
@@ -14,6 +15,7 @@ import { ExpensesComponent } from './components/expenses/expenses.component';
 import { CategoriesComponent } from './components/categories/categories.component';
 import { BarcodesComponent } from './components/barcodes/barcodes.component';
 import { InvoicesComponent } from './components/invoices/invoices.component';
+import { AccountingComponent } from './components/accounting/accounting.component';
 import { AuthInterceptor } from './interceptors/auth.interceptor';
 import { AuthGuard } from './guards/auth.guard';
 import { SidebarComponent } from './shared/components/sidebar/sidebar.component';
@@ -30,7 +32,8 @@ import { NavbarComponent } from './shared/components/navbar/navbar.component';
     ExpensesComponent,
     CategoriesComponent,
     BarcodesComponent,
-    InvoicesComponent
+    InvoicesComponent,
+    AccountingComponent
   ],
   imports: [
     BrowserModule,
@@ -38,6 +41,7 @@ import { NavbarComponent } from './shared/components/navbar/navbar.component';
     HttpClientModule,
     FormsModule,
     ReactiveFormsModule,
+    NgApexchartsModule,
     AppRoutingModule,
     SidebarComponent,
     NavbarComponent

@@ -22,6 +22,7 @@ export class ExpensesComponent implements OnInit {
   isSidebarCollapsed = false;
   sidebarWidth = '280px';
   currentUser: any;
+  loading: boolean = false;
   menuItems: any[] = [
     { label: 'Dashboard', icon: 'fas fa-home', route: '/dashboard' },
     { label: 'Products', icon: 'fas fa-box', route: '/products' },
@@ -36,6 +37,7 @@ export class ExpensesComponent implements OnInit {
   constructor(private expenseService: ExpenseService) { }
 
   ngOnInit(): void {
+    this.loading = true;
     this.loadExpenses();
     this.currentUser = {
       name: localStorage.getItem('userName') || 'User',
@@ -54,8 +56,14 @@ export class ExpensesComponent implements OnInit {
 
   loadExpenses(): void {
     this.expenseService.getAllExpenses().subscribe({
-      next: (data) => this.expenses = data,
-      error: (error) => console.error('Error loading expenses:', error)
+      next: (data) => {
+        this.expenses = data;
+        this.loading = false;
+      },
+      error: (error) => {
+        console.error('Error loading expenses:', error);
+        this.loading = false;
+      }
     });
   }
 

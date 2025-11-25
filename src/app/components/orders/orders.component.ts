@@ -56,6 +56,7 @@ export class OrdersComponent implements OnInit {
   isSidebarCollapsed = false;
   sidebarWidth = '280px';
   currentUser: any;
+  loading: boolean = false;
   menuItems: any[] = [
     { label: 'Dashboard', icon: 'fas fa-home', route: '/dashboard' },
     { label: 'Products', icon: 'fas fa-box', route: '/products' },
@@ -88,6 +89,7 @@ export class OrdersComponent implements OnInit {
   }
 
   ngOnInit(): void {
+    this.loading = true;
     this.loadOrders();
     this.loadProducts();
     const user = this.authService.getCurrentUser();
@@ -111,14 +113,20 @@ export class OrdersComponent implements OnInit {
 
   loadOrders(): void {
     this.orderService.getAllOrders().subscribe({
-      next: (data) => this.orders = data,
-      error: (error) => console.error('Error loading orders:', error)
+      next: (data) => {
+        this.orders = data;
+        this.loading = false;
+      },
+      error: (error) => {
+        console.error('Error loading orders:', error);
+        this.loading = false;
+      }
     });
   }
 
   loadProducts(): void {
     this.productService.getAllProducts().subscribe({
-      next: (data) => this.products = data.filter(p => p.productStatus === 'YES'),
+      next: (data) => this.products = data,
       error: (error) => console.error('Error loading products:', error)
     });
   }
@@ -131,12 +139,40 @@ export class OrdersComponent implements OnInit {
 
   addToCart(): void {
     if (this.selectedProduct && this.orderForm.orderQuantity > 0) {
-      const item: OrderItemDto = {
-        productId: this.selectedProduct.productId,
-        quantity: this.orderForm.orderQuantity,
-        unitPrice: this.selectedProduct.productPerUnitPrice
-      };
-      this.cartItems.push(item);
+      // Check if product already exists in cart
+      const existingItem = this.cartItems.find(item => item.productId === this.selectedProduct!.productId);
+      
+      if (existingItem) {
+        // Update quantity of existing item
+        existingItem.quantity += this.orderForm.orderQuantity;
+        
+        Swal.fire({
+          icon: 'info',
+          title: 'Cart Updated',
+          text: `Quantity updated for ${this.selectedProduct.productName}`,
+          confirmButtonColor: '#667eea',
+          timer: 1500,
+          showConfirmButton: false
+        });
+      } else {
+        // Add new item to cart
+        const item: OrderItemDto = {
+          productId: this.selectedProduct.productId,
+          quantity: this.orderForm.orderQuantity,
+          unitPrice: this.selectedProduct.productPerUnitPrice
+        };
+        this.cartItems.push(item);
+        
+        Swal.fire({
+          icon: 'success',
+          title: 'Added to Cart',
+          text: `${this.selectedProduct.productName} added to cart`,
+          confirmButtonColor: '#667eea',
+          timer: 1500,
+          showConfirmButton: false
+        });
+      }
+      
       this.selectedProduct = null;
       this.orderForm.orderQuantity = 1;
     }

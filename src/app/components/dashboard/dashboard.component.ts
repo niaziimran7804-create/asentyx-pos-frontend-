@@ -2,6 +2,21 @@ import { Component, OnInit } from '@angular/core';
 import { Router } from '@angular/router';
 import { AuthService } from '../../services/auth.service';
 import { ProductService } from '../../services/product.service';
+import { AccountingService } from '../../services/accounting.service';
+import { ApexAxisChartSeries, ApexChart, ApexXAxis, ApexDataLabels, ApexTooltip, ApexStroke, ApexYAxis, ApexGrid, ApexLegend } from 'ng-apexcharts';
+
+export type ChartOptions = {
+  series: ApexAxisChartSeries;
+  chart: ApexChart;
+  xaxis: ApexXAxis;
+  dataLabels: ApexDataLabels;
+  grid: ApexGrid;
+  stroke: ApexStroke;
+  tooltip: ApexTooltip;
+  yaxis: ApexYAxis;
+  legend: ApexLegend;
+  colors: string[];
+};
 
 interface MenuItem {
   label: string;
@@ -22,10 +37,15 @@ export class DashboardComponent implements OnInit {
   unavailableProducts: number = 0;
   isSidebarCollapsed = false;
   menuItems: MenuItem[] = [];
+  loading: boolean = false;
+  
+  salesChartOptions: Partial<ChartOptions> | null = null;
+  dailySales: any[] = [];
 
   constructor(
     private authService: AuthService,
     private productService: ProductService,
+    private accountingService: AccountingService,
     private router: Router
   ) {
     this.currentUser = this.authService.getCurrentUser();
@@ -33,7 +53,9 @@ export class DashboardComponent implements OnInit {
   }
 
   ngOnInit(): void {
+    this.loading = true;
     this.loadStats();
+    this.loadSalesChart();
   }
 
   setupMenuItems(): void {
@@ -42,7 +64,8 @@ export class DashboardComponent implements OnInit {
       { label: 'Products', icon: 'fas fa-box', route: '/products' },
       { label: 'Orders', icon: 'fas fa-shopping-cart', route: '/orders' },
       { label: 'Categories', icon: 'fas fa-tags', route: '/categories' },
-      { label: 'Invoices', icon: 'fas fa-file-invoice', route: '/invoices' }
+      { label: 'Invoices', icon: 'fas fa-file-invoice', route: '/invoices' },
+      { label: 'Accounting', icon: 'fas fa-calculator', route: '/accounting' }
     ];
 
     if (this.isAdmin() || this.isCashier()) {
@@ -64,9 +87,125 @@ export class DashboardComponent implements OnInit {
   }
 
   loadStats(): void {
-    this.productService.getTotalProducts().subscribe(count => this.totalProducts = count);
-    this.productService.getAvailableProducts().subscribe(count => this.availableProducts = count);
-    this.productService.getUnavailableProducts().subscribe(count => this.unavailableProducts = count);
+    let completedCalls = 0;
+    const checkComplete = () => {
+      completedCalls++;
+      if (completedCalls === 3) this.loading = false;
+    };
+    
+    this.productService.getTotalProducts().subscribe({
+      next: count => this.totalProducts = count,
+      error: () => checkComplete(),
+      complete: () => checkComplete()
+    });
+    this.productService.getAvailableProducts().subscribe({
+      next: count => this.availableProducts = count,
+      error: () => checkComplete(),
+      complete: () => checkComplete()
+    });
+    this.productService.getUnavailableProducts().subscribe({
+      next: count => this.unavailableProducts = count,
+      error: () => checkComplete(),
+      complete: () => checkComplete()
+    });
+  }
+
+  loadSalesChart(): void {
+    // Mock data for sales chart
+    const labels: string[] = [];
+    const salesData: number[] = [];
+    const profitData: number[] = [];
+
+    const today = new Date();
+    for (let i = 29; i >= 0; i--) {
+      const date = new Date(today);
+      date.setDate(date.getDate() - i);
+      labels.push(date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' }));
+      
+      const sales = 2000 + Math.random() * 4000;
+      const expenses = 800 + Math.random() * 1500;
+      salesData.push(Math.round(sales));
+      profitData.push(Math.round(sales - expenses));
+    }
+
+    const mockData = {
+      labels,
+      salesData,
+      profitData
+    };
+
+    this.salesChartOptions = {
+      series: [
+        {
+          name: 'Sales',
+          data: mockData.salesData
+        },
+        {
+          name: 'Profit',
+          data: mockData.profitData
+        }
+      ],
+      chart: {
+        type: 'line',
+        height: 300,
+        toolbar: {
+          show: true
+        }
+      },
+      colors: ['#667eea', '#48bb78'],
+      dataLabels: {
+        enabled: false
+      },
+      stroke: {
+        curve: 'smooth',
+        width: 3
+      },
+      xaxis: {
+        categories: mockData.labels,
+        labels: {
+          style: {
+            colors: '#6b7280'
+          }
+        }
+      },
+      yaxis: {
+        labels: {
+          formatter: (value) => {
+            return '$' + value.toFixed(2);
+          },
+          style: {
+            colors: '#6b7280'
+          }
+        }
+      },
+      grid: {
+        borderColor: '#e5e7eb'
+      },
+      legend: {
+        position: 'top'
+      },
+      tooltip: {
+        y: {
+          formatter: (value) => {
+            return '$' + value.toFixed(2);
+          }
+        }
+      }
+    };
+
+    // Load daily sales from API
+    this.accountingService.getDailySales(7).subscribe({
+      next: (data) => {
+        this.dailySales = data;
+      },
+      error: (error) => {
+        console.error('Error loading daily sales:', error);
+      }
+    });
+  }
+
+  formatCurrency(amount: number): string {
+    return new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(amount);
   }
 
   logout(): void {

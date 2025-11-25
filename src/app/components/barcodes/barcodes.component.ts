@@ -20,6 +20,7 @@ export class BarcodesComponent implements OnInit {
   isSidebarCollapsed = false;
   sidebarWidth = '280px';
   currentUser: any;
+  loading: boolean = false;
   menuItems: any[] = [
     { label: 'Dashboard', icon: 'fas fa-home', route: '/dashboard' },
     { label: 'Products', icon: 'fas fa-box', route: '/products' },
@@ -37,6 +38,7 @@ export class BarcodesComponent implements OnInit {
   ) { }
 
   ngOnInit(): void {
+    this.loading = true;
     this.loadBarcodes();
     this.currentUser = {
       name: localStorage.getItem('userName') || 'User',
@@ -55,8 +57,14 @@ export class BarcodesComponent implements OnInit {
 
   loadBarcodes(): void {
     this.barcodeService.getBarCodes().subscribe({
-      next: (data) => this.barcodes = data,
-      error: (error) => console.error('Error loading barcodes:', error)
+      next: (data) => {
+        this.barcodes = data;
+        this.loading = false;
+      },
+      error: (error) => {
+        console.error('Error loading barcodes:', error);
+        this.loading = false;
+      }
     });
   }
 
