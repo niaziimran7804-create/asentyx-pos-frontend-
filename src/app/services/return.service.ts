@@ -50,4 +50,14 @@ export class ReturnService {
   deleteReturn(id: number): Observable<void> {
     return this.http.delete<void>(`${this.apiUrl}/${id}`);
   }
+
+  // Whole Bill Return
+  createWholeReturn(payload: any): Observable<any> {
+    return this.http.post<any>(`${this.apiUrl}/whole`, payload);
+  }
+
+  // Partial Return
+  createPartialReturn(payload: any): Observable<any> {
+    return this.http.post<any>(`${this.apiUrl}/partial`, payload);
+  }
 }

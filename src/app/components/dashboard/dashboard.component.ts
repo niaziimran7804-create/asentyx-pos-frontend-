@@ -112,89 +112,81 @@ export class DashboardComponent implements OnInit {
   }
 
   loadSalesChart(): void {
-    // Mock data for sales chart
-    const labels: string[] = [];
-    const salesData: number[] = [];
-    const profitData: number[] = [];
+    // Load sales data from API for last 30 days
+    const endDate = new Date();
+    const startDate = new Date();
+    startDate.setDate(startDate.getDate() - 29); // Last 30 days
 
-    const today = new Date();
-    for (let i = 29; i >= 0; i--) {
-      const date = new Date(today);
-      date.setDate(date.getDate() - i);
-      labels.push(date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' }));
-      
-      const sales = 2000 + Math.random() * 4000;
-      const expenses = 800 + Math.random() * 1500;
-      salesData.push(Math.round(sales));
-      profitData.push(Math.round(sales - expenses));
-    }
-
-    const mockData = {
-      labels,
-      salesData,
-      profitData
-    };
-
-    this.salesChartOptions = {
-      series: [
-        {
-          name: 'Sales',
-          data: mockData.salesData
-        },
-        {
-          name: 'Profit',
-          data: mockData.profitData
-        }
-      ],
-      chart: {
-        type: 'line',
-        height: 300,
-        toolbar: {
-          show: true
-        }
-      },
-      colors: ['#667eea', '#48bb78'],
-      dataLabels: {
-        enabled: false
-      },
-      stroke: {
-        curve: 'smooth',
-        width: 3
-      },
-      xaxis: {
-        categories: mockData.labels,
-        labels: {
-          style: {
-            colors: '#6b7280'
-          }
-        }
-      },
-      yaxis: {
-        labels: {
-          formatter: (value) => {
-            return '$' + value.toFixed(2);
+    this.accountingService.getSalesGraph(startDate, endDate).subscribe({
+      next: (graphData) => {
+        // Use real data from API
+        this.salesChartOptions = {
+          series: [
+            {
+              name: 'Sales',
+              data: graphData.salesData
+            },
+            {
+              name: 'Profit',
+              data: graphData.profitData
+            }
+          ],
+          chart: {
+            type: 'line',
+            height: 300,
+            toolbar: {
+              show: true
+            }
           },
-          style: {
-            colors: '#6b7280'
+          colors: ['#667eea', '#48bb78'],
+          dataLabels: {
+            enabled: false
+          },
+          stroke: {
+            curve: 'smooth',
+            width: 3
+          },
+          xaxis: {
+            categories: graphData.labels,
+            labels: {
+              style: {
+                colors: '#6b7280'
+              }
+            }
+          },
+          yaxis: {
+            labels: {
+              formatter: (value) => {
+                return '$' + value.toFixed(2);
+              },
+              style: {
+                colors: '#6b7280'
+              }
+            }
+          },
+          grid: {
+            borderColor: '#e5e7eb'
+          },
+          legend: {
+            position: 'top'
+          },
+          tooltip: {
+            y: {
+              formatter: (value) => {
+                return '$' + value.toFixed(2);
+              }
+            }
           }
-        }
+        };
       },
-      grid: {
-        borderColor: '#e5e7eb'
-      },
-      legend: {
-        position: 'top'
-      },
-      tooltip: {
-        y: {
-          formatter: (value) => {
-            return '$' + value.toFixed(2);
-          }
-        }
+      error: (error) => {
+        console.error('Error loading sales graph:', error);
+        // Fallback to empty chart if API fails
+        this.initializeEmptyChart();
       }
-    };
+    });
 
-    // Load daily sales from API
+    // Load daily sales summary for recent days
     this.accountingService.getDailySales(7).subscribe({
       next: (data) => {
         this.dailySales = data;
@@ -203,6 +195,46 @@ export class DashboardComponent implements OnInit {
         console.error('Error loading daily sales:', error);
       }
     });
+  }
+
+  initializeEmptyChart(): void {
+    const labels: string[] = [];
+    const today = new Date();
+    for (let i = 29; i >= 0; i--) {
+      const date = new Date(today);
+      date.setDate(date.getDate() - i);
+      labels.push(date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' }));
+    }
+
+    this.salesChartOptions = {
+      series: [
+        { name: 'Sales', data: Array(30).fill(0) },
+        { name: 'Profit', data: Array(30).fill(0) }
+      ],
+      chart: {
+        type: 'line',
+        height: 300,
+        toolbar: { show: true }
+      },
+      colors: ['#667eea', '#48bb78'],
+      dataLabels: { enabled: false },
+      stroke: { curve: 'smooth', width: 3 },
+      xaxis: {
+        categories: labels,
+        labels: { style: { colors: '#6b7280' } }
+      },
+      yaxis: {
+        labels: {
+          formatter: (value) => '$' + value.toFixed(2),
+          style: { colors: '#6b7280' }
+        }
+      },
+      grid: { borderColor: '#e5e7eb' },
+      legend: { position: 'top' },
+      tooltip: {
+        y: { formatter: (value) => '$' + value.toFixed(2) }
+      }
+    };
   }
 
   formatCurrency(amount: number): string {

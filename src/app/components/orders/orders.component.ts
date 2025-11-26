@@ -32,6 +32,7 @@ export class OrdersComponent implements OnInit {
   selectedProduct: ProductDto | null = null;
   cartItems: OrderItemDto[] = [];
   showCustomerForm: boolean = false;
+  orderPaymentStatus: 'Pending' | 'Paid' = 'Pending'; // Payment status for new orders
   
   // Customer search
   customerSearchTerm: string = '';
@@ -51,6 +52,7 @@ export class OrdersComponent implements OnInit {
   statusFilter: string = 'All'; // 'All', 'Pending', 'Paid'
   selectedOrderIds: Set<number> = new Set();
   showBulkActions: boolean = false;
+  expandedOrderIds: Set<number> = new Set(); // Track expanded multi-product orders
 
   // Sidebar and Navbar properties
   isSidebarCollapsed = false;
@@ -133,6 +135,17 @@ export class OrdersComponent implements OnInit {
   }
 
   selectProduct(product: ProductDto): void {
+    // Prevent selection of out-of-stock products
+    if (product.productUnitStock === 0) {
+      Swal.fire({
+        icon: 'error',
+        title: 'Out of Stock',
+        text: `${product.productName} is currently out of stock`,
+        confirmButtonColor: '#667eea'
+      });
+      return;
+    }
+    
     this.selectedProduct = product;
     this.orderForm.productId = product.productId;
     this.orderForm.productMSRP = product.productMSRP;
@@ -140,8 +153,24 @@ export class OrdersComponent implements OnInit {
 
   addToCart(): void {
     if (this.selectedProduct && this.orderForm.orderQuantity > 0) {
-      // Check if product already exists in cart
+      // Calculate total quantity in cart for this product
       const existingItem = this.cartItems.find(item => item.productId === this.selectedProduct!.productId);
+      const currentCartQuantity = existingItem ? existingItem.quantity : 0;
+      const totalRequestedQuantity = currentCartQuantity + this.orderForm.orderQuantity;
+      
+      // Check if requested quantity exceeds available stock
+      if (totalRequestedQuantity > this.selectedProduct.productUnitStock) {
+        Swal.fire({
+          icon: 'error',
+          title: 'Insufficient Stock',
+          html: `Cannot add ${this.orderForm.orderQuantity} units.<br/>
+                 Available stock: <strong>${this.selectedProduct.productUnitStock}</strong><br/>
+                 Already in cart: <strong>${currentCartQuantity}</strong><br/>
+                 Maximum you can add: <strong>${this.selectedProduct.productUnitStock - currentCartQuantity}</strong>`,
+          confirmButtonColor: '#667eea'
+        });
+        return;
+      }
       
       if (existingItem) {
         // Update quantity of existing item
@@ -206,29 +235,37 @@ export class OrdersComponent implements OnInit {
     }
 
     this.orderForm.items = this.cartItems;
+    
+    // Set orderQuantity to total quantity of all items in cart
+    this.orderForm.orderQuantity = this.cartItems.reduce((total, item) => total + item.quantity, 0);
+    
+    // If single item order, use that item's details
+    if (this.cartItems.length === 1) {
+      this.orderForm.productId = this.cartItems[0].productId;
+      this.orderForm.productMSRP = this.cartItems[0].unitPrice;
+    }
+    
     this.orderService.createOrder(this.orderForm).subscribe({
       next: (order) => {
-        // Ask if user wants to print receipt
-        Swal.fire({
-          icon: 'success',
-          title: 'Order Created Successfully!',
-          text: 'Do you want to print the receipt?',
-          showCancelButton: true,
-          confirmButtonColor: '#667eea',
-          cancelButtonColor: '#6c757d',
-          confirmButtonText: 'Yes, print receipt!',
-          cancelButtonText: 'No, thanks'
-        }).then((result) => {
-          if (result.isConfirmed && order.invoiceId) {
-            // Small delay to ensure invoice is fully created
-            setTimeout(() => {
-              this.invoiceService.openInvoicePrintWindow(order.invoiceId!);
-            }, 300);
-          }
-        });
-        
-        this.loadOrders();
-        this.resetForm();
+        // If payment status is set to "Paid", mark the order as paid immediately
+        if (this.orderPaymentStatus === 'Paid' && order.orderId) {
+          const updateDto: UpdateOrderStatusDto = {
+            status: 'Paid',
+            orderStatus: 'Paid'
+          };
+          this.orderService.updateOrderStatus(order.orderId, updateDto).subscribe({
+            next: () => {
+              this.showOrderCreatedDialog(order);
+            },
+            error: (error) => {
+              // Even if status update fails, order was created successfully
+              console.error('Error updating order status:', error);
+              this.showOrderCreatedDialog(order);
+            }
+          });
+        } else {
+          this.showOrderCreatedDialog(order);
+        }
       },
       error: (error) => {
         Swal.fire({
@@ -241,11 +278,37 @@ export class OrdersComponent implements OnInit {
     });
   }
 
+  private showOrderCreatedDialog(order: any): void {
+    // Ask if user wants to print receipt
+    Swal.fire({
+      icon: 'success',
+      title: 'Order Created Successfully!',
+      text: `Order has been marked as ${this.orderPaymentStatus}. Do you want to print the receipt?`,
+      showCancelButton: true,
+      confirmButtonColor: '#667eea',
+      cancelButtonColor: '#6c757d',
+      confirmButtonText: 'Yes, print receipt!',
+      cancelButtonText: 'No, thanks'
+    }).then((result) => {
+      if (result.isConfirmed && order.invoiceId) {
+        // Small delay to ensure invoice is fully created
+        setTimeout(() => {
+          this.invoiceService.openInvoicePrintWindow(order.invoiceId!);
+        }, 300);
+      }
+    });
+    
+    this.loadOrders();
+    this.loadProducts(); // Refresh product list to show updated stock quantities
+    this.resetForm();
+  }
+
   resetForm(): void {
     this.showForm = false;
     this.showCustomerForm = false;
     this.cartItems = [];
     this.selectedProduct = null;
+    this.orderPaymentStatus = 'Pending'; // Reset payment status to default
     const user = this.authService.getCurrentUser();
     this.orderForm = {
       userId: user?.id || 0,
@@ -586,5 +649,122 @@ export class OrdersComponent implements OnInit {
   clearSelection(): void {
     this.selectedOrderIds.clear();
     this.showBulkActions = false;
+  }
+
+  // Multi-product order display helpers
+  toggleOrderDetails(orderId: number): void {
+    if (this.expandedOrderIds.has(orderId)) {
+      this.expandedOrderIds.delete(orderId);
+    } else {
+      this.expandedOrderIds.add(orderId);
+    }
+  }
+
+  isOrderExpanded(orderId: number): boolean {
+    return this.expandedOrderIds.has(orderId);
+  }
+
+  // View Invoice Details
+  viewInvoice(order: OrderDto): void {
+    if (!order.invoiceId) {
+      Swal.fire({
+        icon: 'warning',
+        title: 'No Invoice',
+        text: 'This order does not have an associated invoice yet.',
+        confirmButtonColor: '#667eea'
+      });
+      return;
+    }
+
+    this.invoiceService.getInvoiceById(order.invoiceId).subscribe({
+      next: (invoice) => {
+        const productsList = order.items && order.items.length > 0
+          ? order.items.map(item => `
+              <tr>
+                <td style="text-align: left; padding: 8px; border: 1px solid #ddd;">${item.productName || 'Product #' + item.productId}</td>
+                <td style="text-align: center; padding: 8px; border: 1px solid #ddd;">${item.quantity}</td>
+                <td style="text-align: right; padding: 8px; border: 1px solid #ddd;">$${item.unitPrice}</td>
+                <td style="text-align: right; padding: 8px; border: 1px solid #ddd;">$${(item.quantity * item.unitPrice).toFixed(2)}</td>
+              </tr>
+            `).join('')
+          : `
+            <tr>
+              <td style="text-align: left; padding: 8px; border: 1px solid #ddd;">${order.productName || 'N/A'}</td>
+              <td style="text-align: center; padding: 8px; border: 1px solid #ddd;">${order.orderQuantity}</td>
+              <td style="text-align: right; padding: 8px; border: 1px solid #ddd;">$${order.productMSRP}</td>
+              <td style="text-align: right; padding: 8px; border: 1px solid #ddd;">$${order.totalAmount}</td>
+            </tr>
+          `;
+
+        Swal.fire({
+          title: `<i class="fas fa-file-invoice text-primary"></i> Invoice #${invoice.invoiceNumber}`,
+          html: `
+            <div style="text-align: left; padding: 20px;">
+              <div style="margin-bottom: 20px; padding: 15px; background: #f8f9fa; border-radius: 8px;">
+                <h5 style="margin: 0 0 10px 0; color: #667eea;"><i class="fas fa-receipt"></i> Order Information</h5>
+                <p style="margin: 5px 0;"><strong>Order ID:</strong> #${order.orderId}</p>
+                <p style="margin: 5px 0;"><strong>Order Date:</strong> ${new Date(order.date).toLocaleString()}</p>
+                <p style="margin: 5px 0;"><strong>Payment Method:</strong> <span class="badge bg-info">${order.paymentMethod}</span></p>
+                <p style="margin: 5px 0;"><strong>Status:</strong> <span class="badge ${order.status === 'Paid' ? 'bg-success' : order.status === 'Pending' ? 'bg-warning' : 'bg-secondary'}">${order.status}</span></p>
+              </div>
+
+              <div style="margin-bottom: 20px; padding: 15px; background: #f8f9fa; border-radius: 8px;">
+                <h5 style="margin: 0 0 10px 0; color: #667eea;"><i class="fas fa-user"></i> Customer Information</h5>
+                <p style="margin: 5px 0;"><strong>Name:</strong> ${order.customerFullName || 'N/A'}</p>
+                <p style="margin: 5px 0;"><strong>Phone:</strong> ${order.customerPhone || 'N/A'}</p>
+                <p style="margin: 5px 0;"><strong>Email:</strong> ${order.customerEmail || 'N/A'}</p>
+                <p style="margin: 5px 0;"><strong>Address:</strong> ${order.customerAddress || 'N/A'}</p>
+              </div>
+
+              <div style="margin-bottom: 20px;">
+                <h5 style="margin: 0 0 10px 0; color: #667eea;"><i class="fas fa-box"></i> Products</h5>
+                <table style="width: 100%; border-collapse: collapse; border: 1px solid #ddd;">
+                  <thead style="background: #667eea; color: white;">
+                    <tr>
+                      <th style="text-align: left; padding: 10px; border: 1px solid #ddd;">Product</th>
+                      <th style="text-align: center; padding: 10px; border: 1px solid #ddd;">Qty</th>
+                      <th style="text-align: right; padding: 10px; border: 1px solid #ddd;">Unit Price</th>
+                      <th style="text-align: right; padding: 10px; border: 1px solid #ddd;">Total</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    ${productsList}
+                  </tbody>
+                </table>
+              </div>
+
+              <div style="padding: 15px; background: #e8f5e9; border-radius: 8px; border: 2px solid #4caf50;">
+                <h5 style="margin: 0 0 10px 0; color: #2e7d32;"><i class="fas fa-dollar-sign"></i> Invoice Summary</h5>
+                <p style="margin: 5px 0;"><strong>Total Amount:</strong> <span style="font-size: 1.2em; color: #4caf50;">$${invoice.totalAmount}</span></p>
+                <p style="margin: 5px 0;"><strong>Paid Amount:</strong> $${invoice.paidAmount}</p>
+                <p style="margin: 5px 0;"><strong>Remaining:</strong> <span style="color: ${invoice.remainingAmount > 0 ? '#f44336' : '#4caf50'};">$${invoice.remainingAmount}</span></p>
+              </div>
+            </div>
+          `,
+          width: '800px',
+          showCloseButton: true,
+          showCancelButton: false,
+          confirmButtonText: '<i class="fas fa-print me-2"></i>Print Invoice',
+          confirmButtonColor: '#667eea',
+          customClass: {
+            popup: 'swal-wide'
+          }
+        }).then((result) => {
+          if (result.isConfirmed) {
+            // Navigate to invoices page to print
+            window.location.href = `/invoices?id=${invoice.invoiceId}`;
+          }
+        });
+      },
+      error: (error) => {
+        console.error('Error loading invoice:', error);
+        Swal.fire({
+          icon: 'error',
+          title: 'Error',
+          text: 'Failed to load invoice details. Please try again.',
+          confirmButtonColor: '#667eea'
+        });
+      }
+    });
   }
 }

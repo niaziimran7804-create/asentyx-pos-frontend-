@@ -20,9 +20,14 @@
             <h1 class="display-6 fw-bold">Products Management</h1>
             <p class="text-muted">Manage your inventory and stock levels</p>
           </div>
-          <button class="btn btn-success btn-lg shadow" (click)="showForm = !showForm">
-            <i class="fas fa-plus me-2"></i>Add Product
-          </button>
+          <div class="d-flex gap-2">
+            <button class="btn btn-info btn-lg shadow" (click)="showImportForm = !showImportForm">
+              <i class="fas fa-file-excel me-2"></i>Import from Excel
+            </button>
+            <button class="btn btn-success btn-lg shadow" (click)="showForm = !showForm">
+              <i class="fas fa-plus me-2"></i>Add Product
+            </button>
+          </div>
         </div>
 
         <div class="card mb-4">
@@ -89,6 +94,59 @@
                 <button type="button" class="btn btn-outline-danger px-4" (click)="resetForm()"><i class="fas fa-times me-2"></i>Cancel</button>
               </div>
             </form>
+          </div>
+        </div>
+
+        <!-- Excel Import Form -->
+        <div class="card shadow-sm mb-4" *ngIf="showImportForm">
+          <div class="card-header bg-info text-white">
+            <h3 class="mb-0"><i class="fas fa-file-excel me-2"></i>Import Products from Excel</h3>
+          </div>
+          <div class="card-body">
+            <div class="alert alert-info">
+              <i class="fas fa-info-circle me-2"></i>
+              <strong>Instructions:</strong>
+              <ul class="mb-0 mt-2">
+                <li>Download the template and fill in your product data</li>
+                <li>Required columns: Product Name, Brand Name, Price, MSRP, Stock</li>
+                <li>Brand Name must match exactly with existing brands</li>
+                <li>Status should be 'YES' or 'NO'</li>
+              </ul>
+            </div>
+            
+            <div class="mb-4">
+              <button class="btn btn-outline-info" (click)="downloadTemplate()">
+                <i class="fas fa-download me-2"></i>Download Template
+              </button>
+            </div>
+
+            <div class="mb-3">
+              <label class="form-label fw-semibold"><i class="fas fa-upload me-2"></i>Select Excel File</label>
+              <input type="file" class="form-control" (change)="onImportFileSelected($event)" accept=".xlsx,.xls" />
+              <small class="text-muted">Supported formats: .xlsx, .xls</small>
+            </div>
+
+            <div *ngIf="importFile" class="alert alert-success">
+              <i class="fas fa-check-circle me-2"></i>
+              File selected: <strong>{{ importFile.name }}</strong>
+            </div>
+
+            <div *ngIf="importProgress > 0 && importProgress < 100" class="mb-3">
+              <label class="form-label">Import Progress: {{ importProgress }}%</label>
+              <div class="progress">
+                <div class="progress-bar progress-bar-striped progress-bar-animated bg-info" 
+                     [style.width.%]="importProgress"></div>
+              </div>
+            </div>
+
+            <div class="d-flex gap-2">
+              <button class="btn btn-info px-4" (click)="processImportFile()" [disabled]="!importFile || (importProgress > 0 && importProgress < 100)">
+                <i class="fas fa-upload me-2"></i>Start Import
+              </button>
+              <button class="btn btn-outline-danger px-4" (click)="resetImportForm()">
+                <i class="fas fa-times me-2"></i>Cancel
+              </button>
+            </div>
           </div>
         </div>
 

@@ -17,6 +17,16 @@ export interface OrderDto {
   customerAddress?: string;
   customerEmail?: string;
   invoiceId?: number;
+  items?: OrderItemDto[];  // Added for multi-product support
+}
+
+export interface OrderItemDto {
+  orderItemId?: number;
+  productId: number;
+  productName?: string;
+  quantity: number;
+  unitPrice: number;
+  totalPrice?: number;
 }
 
 export interface CreateOrderDto {
@@ -31,12 +41,6 @@ export interface CreateOrderDto {
   customerAddress?: string;
   customerEmail?: string;
   items: OrderItemDto[];
-}
-
-export interface OrderItemDto {
-  productId: number;
-  quantity: number;
-  unitPrice: number;
 }
 
 export interface UpdateOrderStatusDto {

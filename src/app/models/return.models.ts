@@ -1,10 +1,20 @@
-export interface PurchaseReturnDto {
-  returnId: number;
-  orderId: number;
+export interface ReturnedItemDto {
   productId: number;
-  productName?: string;
+  productName: string;
   returnQuantity: number;
   returnAmount: number;
+}
+
+export interface PurchaseReturnDto {
+  returnId: number;
+  returnType?: 'whole' | 'partial';
+  invoiceId?: number;
+  orderId: number;
+  productId?: number;
+  productName?: string;
+  returnQuantity?: number;
+  returnAmount?: number;
+  totalReturnAmount?: number;
   returnReason: string;
   returnStatus: 'Pending' | 'Approved' | 'Rejected' | 'Completed';
   customerFullName?: string;
@@ -15,6 +25,9 @@ export interface PurchaseReturnDto {
   processedDate?: Date;
   refundMethod: 'Cash' | 'Card' | 'Store Credit';
   notes?: string;
+  itemsCount?: number;
+  returnedItems?: ReturnedItemDto[];
+  message?: string;
 }
 
 export interface CreatePurchaseReturnDto {

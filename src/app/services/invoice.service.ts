@@ -1,7 +1,15 @@
 import { Injectable } from '@angular/core';
 import { HttpClient, HttpParams } from '@angular/common/http';
 import { Observable } from 'rxjs';
-import { InvoiceDto, CreateInvoiceDto, ShopConfigurationDto, UpdateShopConfigurationDto } from '../models/invoice.models';
+import { 
+  InvoiceDto, 
+  CreateInvoiceDto, 
+  ShopConfigurationDto, 
+  UpdateShopConfigurationDto,
+  PaymentDto,
+  CreatePaymentDto,
+  PaymentSummaryDto
+} from '../models/invoice.models';
 import { InvoiceFilterDto } from '../models/invoice-filter.models';
 
 @Injectable({
@@ -90,6 +98,31 @@ export class InvoiceService {
     const url = `${this.apiUrl}/bulk-print?invoiceIds=${idsParam}`;
     // Open in new window - the print dialog will be triggered automatically
     window.open(url, '_blank');
+  }
+
+  // Payment Management
+  getInvoicePayments(invoiceId: number): Observable<PaymentDto[]> {
+    return this.http.get<PaymentDto[]>(`${this.apiUrl}/${invoiceId}/payments`);
+  }
+
+  addPayment(payment: CreatePaymentDto): Observable<PaymentDto> {
+    return this.http.post<PaymentDto>(`${this.apiUrl}/payments`, payment);
+  }
+
+  deletePayment(paymentId: number): Observable<void> {
+    return this.http.delete<void>(`${this.apiUrl}/payments/${paymentId}`);
+  }
+
+  getPaymentSummary(): Observable<PaymentSummaryDto> {
+    return this.http.get<PaymentSummaryDto>(`${this.apiUrl}/payment-summary`);
+  }
+
+  getPartiallyPaidInvoices(): Observable<InvoiceDto[]> {
+    return this.http.get<InvoiceDto[]>(`${this.apiUrl}/partially-paid`);
+  }
+
+  getOverdueInvoices(): Observable<InvoiceDto[]> {
+    return this.http.get<InvoiceDto[]>(`${this.apiUrl}/overdue`);
   }
 }
 

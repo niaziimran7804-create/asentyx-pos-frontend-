@@ -1,8 +1,10 @@
 import { Component, OnInit } from '@angular/core';
 import { ReturnService } from '../../services/return.service';
 import { OrderService } from '../../services/order.service';
+import { InvoiceService } from '../../services/invoice.service';
 import { PurchaseReturnDto, CreatePurchaseReturnDto, UpdateReturnStatusDto, ReturnSummaryDto } from '../../models/return.models';
 import { OrderDto } from '../../models/order.models';
+import { InvoiceDto } from '../../models/invoice.models';
 import { AuthService } from '../../services/auth.service';
 import Swal from 'sweetalert2';
 
@@ -12,46 +14,113 @@ interface MenuItem {
   route: string;
 }
 
+interface InvoiceWithDetails extends InvoiceDto {
+  products?: Array<{
+    productId: number;
+    productName: string;
+    quantity: number;
+    unitPrice: number;
+    totalPrice: number;
+    remainingQuantity?: number; // For tracking what can still be returned
+  }>;
+}
+
+interface PartialReturnItem {
+  productId: number;
+  productName: string;
+  orderedQuantity: number;
+  returnQuantity: number;
+  unitPrice: number;
+  returnAmount: number;
+  selected: boolean;
+}
+
+interface WholeReturnPayload {
+  returnType: 'whole';
+  invoiceId: number;
+  orderId: number;
+  returnReason: string;
+  refundMethod: string;
+  notes?: string;
+  totalReturnAmount: number;
+}
+
+interface PartialReturnPayload {
+  returnType: 'partial';
+  invoiceId: number;
+  orderId: number;
+  returnReason: string;
+  refundMethod: string;
+  notes?: string;
+  items: Array<{
+    productId: number;
+    returnQuantity: number;
+    returnAmount: number;
+  }>;
+  totalReturnAmount: number;
+}
+
 @Component({
   selector: 'app-returns',
   templateUrl: './returns.component.html',
   styleUrls: ['./returns.component.css']
 })
 export class ReturnsComponent implements OnInit {
+  // Return Lists
   returns: PurchaseReturnDto[] = [];
-  orders: OrderDto[] = [];
   summary: ReturnSummaryDto | null = null;
-  showForm: boolean = false;
-  showDetailsModal: boolean = false;
-  selectedReturn: PurchaseReturnDto | null = null;
+  
+  // Loading States
   loading: boolean = false;
+  loadingInvoices: boolean = false;
+  submittingReturn: boolean = false;
 
-  // Sidebar and Navbar properties
+  // Sidebar and Navbar
   isSidebarCollapsed = false;
   sidebarWidth = '280px';
   currentUser: any;
   menuItems: MenuItem[] = [];
 
-  // Filter properties
+  // Return Type Selection
+  showReturnTypeSelection: boolean = false;
+  selectedReturnType: 'whole' | 'partial' | null = null;
+
+  // Invoice Selection
+  invoices: InvoiceWithDetails[] = [];
+  filteredInvoices: InvoiceWithDetails[] = [];
+  selectedInvoice: InvoiceWithDetails | null = null;
+  invoiceSearchTerm: string = '';
+  showInvoiceSelection: boolean = false;
+
+  // Whole Bill Return
+  showWholeReturnForm: boolean = false;
+  wholeReturnReason: string = '';
+  wholeReturnRefundMethod: string = 'Cash';
+  wholeReturnNotes: string = '';
+
+  // Partial Return
+  showPartialReturnForm: boolean = false;
+  partialReturnItems: PartialReturnItem[] = [];
+  partialReturnReason: string = '';
+  partialReturnRefundMethod: string = 'Cash';
+  partialReturnNotes: string = '';
+
+  // Return Details Modal
+  showDetailsModal: boolean = false;
+  selectedReturn: PurchaseReturnDto | null = null;
+
+  // Invoice Products Preview Modal
+  showProductsPreviewModal: boolean = false;
+  previewInvoice: InvoiceWithDetails | null = null;
+
+  // Filter properties for returns list
   statusFilter: string = 'All';
   searchTerm: string = '';
-
-  // Form
-  returnForm: CreatePurchaseReturnDto = {
-    orderId: 0,
-    productId: 0,
-    returnQuantity: 1,
-    returnAmount: 0,
-    returnReason: '',
-    refundMethod: 'Cash',
-    notes: ''
-  };
-
-  selectedOrder: OrderDto | null = null;
 
   constructor(
     private returnService: ReturnService,
     private orderService: OrderService,
+    private invoiceService: InvoiceService,
     private authService: AuthService
   ) {
     this.currentUser = this.authService.getCurrentUser();
@@ -61,7 +130,6 @@ export class ReturnsComponent implements OnInit {
   ngOnInit(): void {
     this.loading = true;
     this.loadReturns();
-    this.loadOrders();
     this.loadSummary();
     this.currentUser = {
       name: localStorage.getItem('userName') || 'User',
@@ -110,23 +178,55 @@ export class ReturnsComponent implements OnInit {
     this.loading = true;
     this.returnService.getAllReturns().subscribe({
       next: (data) => {
-        this.returns = data;
+        console.log('📋 Loaded returns from API:', data);
+        
+        // Map returns and ensure all fields have values
+        this.returns = data.map(returnItem => {
+          // Handle partial returns with returnedItems array
+          if (returnItem.returnType === 'partial' && returnItem.returnedItems && returnItem.returnedItems.length > 0) {
+            console.log('📦 Partial return detected:', returnItem.returnId, 'with', returnItem.returnedItems.length, 'items');
+            
+            // For display purposes, use the first item or aggregate info
+            const firstItem = returnItem.returnedItems[0];
+            const totalQuantity = returnItem.returnedItems.reduce((sum, item) => sum + item.returnQuantity, 0);
+            const itemsList = returnItem.returnedItems.map(item => item.productName).join(', ');
+            
+            return {
+              ...returnItem,
+              productName: returnItem.returnedItems.length > 1 
+                ? `Multiple Items (${returnItem.returnedItems.length})` 
+                : firstItem.productName,
+              returnQuantity: totalQuantity,
+              returnAmount: returnItem.totalReturnAmount || returnItem.returnAmount || 0,
+              productId: firstItem.productId
+            };
+          }
+          
+          // Handle whole returns or legacy single-product returns
+          if (!returnItem.productName || returnItem.returnQuantity === undefined || returnItem.returnAmount === undefined) {
+            console.warn('⚠️ Return with missing data:', {
+              returnId: returnItem.returnId,
+              productName: returnItem.productName,
+              returnQuantity: returnItem.returnQuantity,
+              returnAmount: returnItem.returnAmount
+            });
+          }
+          
+          return {
+            ...returnItem,
+            productName: returnItem.productName || `Product #${returnItem.productId || 'Unknown'}`,
+            returnQuantity: returnItem.returnQuantity ?? 0,
+            returnAmount: returnItem.totalReturnAmount || returnItem.returnAmount || 0
+          };
+        });
+        
+        console.log('✅ Processed returns:', this.returns);
         this.loading = false;
       },
       error: (error) => {
         console.error('Error loading returns:', error);
         this.loading = false;
       }
-    });
-  }
-
-  loadOrders(): void {
-    this.orderService.getAllOrders().subscribe({
-      next: (data) => {
-        // Only show paid orders for returns
-        this.orders = data.filter(order => order.status === 'Paid');
-      },
-      error: (error) => console.error('Error loading orders:', error)
     });
   }
 
@@ -160,65 +260,589 @@ export class ReturnsComponent implements OnInit {
     return filtered;
   }
 
-  onOrderSelect(): void {
-    const order = this.orders.find(o => o.orderId === this.returnForm.orderId);
-    if (order) {
-      this.selectedOrder = order;
-      this.returnForm.productId = order.productId;
-      this.returnForm.returnAmount = order.totalAmount;
+  // ===== NEW: RETURN TYPE SELECTION =====
+  showReturnOptions(): void {
+    this.showReturnTypeSelection = true;
+  }
+
+  selectReturnType(type: 'whole' | 'partial'): void {
+    this.selectedReturnType = type;
+    this.showReturnTypeSelection = false;
+    this.loadLast14DaysInvoices();
+  }
+
+  cancelReturnTypeSelection(): void {
+    this.showReturnTypeSelection = false;
+    this.selectedReturnType = null;
+  }
+
+  // ===== LOAD INVOICES FROM LAST 14 DAYS =====
+  loadLast14DaysInvoices(): void {
+    this.loadingInvoices = true;
+    const today = new Date();
+    const fourteenDaysAgo = new Date();
+    fourteenDaysAgo.setDate(today.getDate() - 14);
+
+    // Get all invoices and filter by date
+    this.invoiceService.getAllInvoices().subscribe({
+      next: (data) => {
+        console.log('📋 Loaded invoices from API:', data.length);
+        
+        // Filter invoices from last 14 days
+        const recentInvoices = data.filter(invoice => {
+          const invoiceDate = new Date(invoice.invoiceDate);
+          return invoiceDate >= fourteenDaysAgo && invoiceDate <= today;
+        });
+
+        console.log('📅 Recent invoices (last 14 days):', recentInvoices.length);
+
+        // Fetch full order details for each invoice to get items array
+        const orderFetchRequests = recentInvoices.map(invoice => 
+          this.orderService.getOrderById(invoice.orderId)
+        );
+
+        // Wait for all order details to be fetched
+        Promise.all(orderFetchRequests.map(req => req.toPromise()))
+          .then(orders => {
+            console.log('✅ Fetched full order details for all invoices');
+            
+            // Map invoices with full order details including items
+            this.invoices = recentInvoices.map((invoice, index) => {
+              const fullOrder = orders[index];
+              console.log(`Order ${fullOrder?.orderId} has ${fullOrder?.items?.length || 0} items`);
+              
+              return {
+                ...invoice,
+                order: fullOrder || invoice.order, // Use full order with items
+                products: this.extractProductsFromInvoice({
+                  ...invoice,
+                  order: fullOrder || invoice.order
+                })
+              };
+            });
+
+            console.log('📦 Processed invoices with products:', this.invoices);
+            this.filteredInvoices = [...this.invoices];
+            this.loadingInvoices = false;
+            this.showInvoiceSelection = true;
+          })
+          .catch(error => {
+            console.error('❌ Error fetching order details:', error);
+            // Fallback: use invoices without full order details
+            this.invoices = recentInvoices.map(invoice => ({
+              ...invoice,
+              products: this.extractProductsFromInvoice(invoice)
+            }));
+            this.filteredInvoices = [...this.invoices];
+            this.loadingInvoices = false;
+            this.showInvoiceSelection = true;
+          });
+      },
+      error: (error) => {
+        console.error('Error loading invoices:', error);
+        Swal.fire({
+          icon: 'error',
+          title: 'Error',
+          text: 'Failed to load invoices',
+          confirmButtonColor: '#667eea'
+        });
+        this.loadingInvoices = false;
+      }
+    });
+  }
+
+  // Extract products from invoice/order
+  extractProductsFromInvoice(invoice: InvoiceDto): any[] {
+    console.log('🔍 Extracting products from invoice:', invoice.invoiceId);
+    console.log('Full invoice object:', invoice);
+    console.log('Order data:', invoice.order);
+    
+    if (!invoice.order) {
+      console.warn('⚠️ No order data found for invoice', invoice.invoiceId);
+      return [];
+    }
+
+    // Check if order has items array (multi-product order)
+    if (invoice.order.items && Array.isArray(invoice.order.items) && invoice.order.items.length > 0) {
+      console.log('✅ Multi-product order detected, items count:', invoice.order.items.length);
+      console.log('Items data:', invoice.order.items);
+      
+      const products = invoice.order.items.map((item, index) => {
+        console.log(`Processing item ${index + 1}:`, item);
+        return {
+          productId: item.productId,
+          productName: item.productName || `Product ${item.productId}`,
+          quantity: item.quantity,
+          unitPrice: item.unitPrice,
+          totalPrice: item.totalPrice || (item.unitPrice * item.quantity),
+          remainingQuantity: item.quantity
+        };
+      });
+      
+      console.log('✅ Extracted products:', products);
+      return products;
+    }
+
+    // Fallback for single-product order (legacy structure)
+    console.log('📦 Single-product order (legacy structure) - using fallback');
+    console.log('Order details:', {
+      productId: invoice.order.productId,
+      productName: invoice.order.productName,
+      orderQuantity: invoice.order.orderQuantity,
+      totalAmount: invoice.order.totalAmount,
+      productMSRP: invoice.order.productMSRP
+    });
+    
+    // Calculate actual unit price from total amount
+    const actualUnitPrice = invoice.order.orderQuantity > 0 
+      ? invoice.order.totalAmount / invoice.order.orderQuantity 
+      : invoice.order.productMSRP;
+
+    console.log('Calculated unit price:', actualUnitPrice);
+
+    const product = {
+      productId: invoice.order.productId,
+      productName: invoice.order.productName || `Product ${invoice.order.productId}`,
+      quantity: invoice.order.orderQuantity || 1,
+      unitPrice: actualUnitPrice,
+      totalPrice: invoice.order.totalAmount || 0,
+      remainingQuantity: invoice.order.orderQuantity || 1
+    };
+    
+    console.log('Extracted product:', product);
+    return [product];
+  }
+
+  // ===== INVOICE SEARCH =====
+  searchInvoices(): void {
+    const term = this.invoiceSearchTerm.toLowerCase().trim();
+    
+    if (!term) {
+      this.filteredInvoices = [...this.invoices];
+      return;
+    }
+
+    this.filteredInvoices = this.invoices.filter(invoice => {
+      const invoiceNumber = invoice.invoiceNumber?.toLowerCase() || '';
+      const customerName = invoice.order?.customerFullName?.toLowerCase() || '';
+      const invoiceId = invoice.invoiceId.toString();
+      
+      return invoiceNumber.includes(term) || 
+             customerName.includes(term) ||
+             invoiceId.includes(term);
+    });
+  }
+
+  // ===== SELECT INVOICE FOR RETURN =====
+  selectInvoiceForReturn(invoice: InvoiceWithDetails): void {
+    this.selectedInvoice = invoice;
+    this.showInvoiceSelection = false;
+
+    if (this.selectedReturnType === 'whole') {
+      this.initializeWholeReturn();
+    } else if (this.selectedReturnType === 'partial') {
+      this.initializePartialReturn();
     }
   }
 
-  calculateReturnAmount(): void {
-    if (this.selectedOrder && this.returnForm.returnQuantity > 0) {
-      const unitPrice = this.selectedOrder.totalAmount / this.selectedOrder.orderQuantity;
-      this.returnForm.returnAmount = unitPrice * this.returnForm.returnQuantity;
-    }
+  // ===== SHOW INVOICE PRODUCTS PREVIEW =====
+  showInvoiceProducts(invoice: InvoiceWithDetails): void {
+    this.previewInvoice = invoice;
+    this.showProductsPreviewModal = true;
   }
 
-  createReturn(): void {
-    if (!this.returnForm.orderId || !this.returnForm.returnReason) {
+  closeProductsPreview(): void {
+    this.showProductsPreviewModal = false;
+    this.previewInvoice = null;
+  }
+
+  backToInvoiceSelection(): void {
+    this.selectedInvoice = null;
+    this.showInvoiceSelection = true;
+    this.showWholeReturnForm = false;
+    this.showPartialReturnForm = false;
+    this.resetReturnForms();
+  }
+
+  backToReturnTypeSelection(): void {
+    this.selectedInvoice = null;
+    this.selectedReturnType = null;
+    this.showInvoiceSelection = false;
+    this.showWholeReturnForm = false;
+    this.showPartialReturnForm = false;
+    this.showReturnTypeSelection = true;
+    this.resetReturnForms();
+  }
+
+  // ===== WHOLE BILL RETURN =====
+  initializeWholeReturn(): void {
+    this.showWholeReturnForm = true;
+    this.wholeReturnReason = '';
+    this.wholeReturnRefundMethod = 'Cash';
+    this.wholeReturnNotes = '';
+  }
+
+  calculateWholeReturnAmount(): number {
+    return this.selectedInvoice?.order?.totalAmount || 0;
+  }
+
+  submitWholeReturn(): void {
+    if (!this.wholeReturnReason.trim()) {
       Swal.fire({
         icon: 'warning',
         title: 'Missing Information',
-        text: 'Please fill in all required fields',
+        text: 'Please provide a reason for the return',
         confirmButtonColor: '#667eea'
       });
       return;
     }
 
-    if (this.selectedOrder && this.returnForm.returnQuantity > this.selectedOrder.orderQuantity) {
+    if (this.wholeReturnReason.trim().length < 5) {
+      Swal.fire({
+        icon: 'warning',
+        title: 'Invalid Return Reason',
+        text: 'Return reason must be at least 5 characters long',
+        confirmButtonColor: '#667eea'
+      });
+      return;
+    }
+
+    if (!this.selectedInvoice) {
       Swal.fire({
         icon: 'error',
-        title: 'Invalid Quantity',
-        text: 'Return quantity cannot exceed order quantity',
+        title: 'Error',
+        text: 'No invoice selected',
         confirmButtonColor: '#667eea'
       });
       return;
     }
 
-    this.returnService.createReturn(this.returnForm).subscribe({
-      next: () => {
+    const totalAmount = this.calculateWholeReturnAmount();
+
+    const payload: WholeReturnPayload = {
+      returnType: 'whole',
+      invoiceId: this.selectedInvoice.invoiceId,
+      orderId: this.selectedInvoice.orderId,
+      returnReason: this.wholeReturnReason,
+      refundMethod: this.wholeReturnRefundMethod,
+      notes: this.wholeReturnNotes,
+      totalReturnAmount: totalAmount
+    };
+
+    console.log('Whole Return Payload:', payload);
+    
+    // Debug: Check authentication
+    const token = this.authService.getToken();
+    const currentUser = this.authService.getCurrentUser();
+    console.log('Auth Status - Token exists:', !!token, 'User:', currentUser?.email, 'Role:', currentUser?.role);
+    
+    this.submittingReturn = true;
+
+    // Call backend API for whole return
+    this.returnService.createWholeReturn(payload).subscribe({
+      next: (response) => {
         Swal.fire({
           icon: 'success',
           title: 'Return Created!',
-          text: 'Purchase return has been submitted successfully',
+          text: `Whole bill return processed successfully. Return ID: ${response.returnId}`,
           confirmButtonColor: '#667eea',
-          timer: 2000
+          timer: 3000
         });
+        this.resetReturnProcess();
         this.loadReturns();
         this.loadSummary();
-        this.resetForm();
+        this.submittingReturn = false;
       },
       error: (error) => {
-        Swal.fire({
-          icon: 'error',
-          title: 'Error Creating Return',
-          text: error.error?.message || 'Failed to create return. Please try again.',
-          confirmButtonColor: '#667eea'
-        });
+        console.error('Error creating whole return:', error);
+        this.handleReturnError(error);
+        this.submittingReturn = false;
       }
     });
+  }
+
+  // ===== PARTIAL RETURN =====
+  initializePartialReturn(): void {
+    console.log('🔄 Initializing partial return for invoice:', this.selectedInvoice?.invoiceId);
+    console.log('Invoice products:', this.selectedInvoice?.products);
+    
+    this.showPartialReturnForm = true;
+    this.partialReturnReason = '';
+    this.partialReturnRefundMethod = 'Cash';
+    this.partialReturnNotes = '';
+
+    // Initialize partial return items from invoice products
+    this.partialReturnItems = (this.selectedInvoice?.products || []).map(product => {
+      console.log('Creating partial return item for product:', product);
+      const item = {
+        productId: product.productId,
+        productName: product.productName,
+        orderedQuantity: product.quantity,
+        returnQuantity: 0,
+        unitPrice: product.unitPrice,
+        returnAmount: 0,
+        selected: false
+      };
+      console.log('Created item:', item);
+      return item;
+    });
+    
+    console.log('All partial return items:', this.partialReturnItems);
+  }
+
+  togglePartialItem(item: PartialReturnItem): void {
+    item.selected = !item.selected;
+    if (!item.selected) {
+      item.returnQuantity = 0;
+      item.returnAmount = 0;
+    } else {
+      item.returnQuantity = 1;
+      this.calculatePartialItemAmount(item);
+    }
+  }
+
+  onPartialQuantityChange(item: PartialReturnItem): void {
+    if (item.returnQuantity > item.orderedQuantity) {
+      item.returnQuantity = item.orderedQuantity;
+      Swal.fire({
+        icon: 'warning',
+        title: 'Invalid Quantity',
+        text: `Cannot return more than ordered quantity (${item.orderedQuantity})`,
+        confirmButtonColor: '#667eea',
+        timer: 2000
+      });
+    }
+
+    if (item.returnQuantity < 0) {
+      item.returnQuantity = 0;
+    }
+
+    this.calculatePartialItemAmount(item);
+  }
+
+  calculatePartialItemAmount(item: PartialReturnItem): void {
+    item.returnAmount = Math.round(item.unitPrice * item.returnQuantity * 100) / 100;
+  }
+
+  calculatePartialReturnTotal(): number {
+    return this.partialReturnItems
+      .filter(item => item.selected && item.returnQuantity > 0)
+      .reduce((total, item) => total + item.returnAmount, 0);
+  }
+
+  getSelectedPartialItemsCount(): number {
+    return this.partialReturnItems.filter(item => item.selected && item.returnQuantity > 0).length;
+  }
+
+  submitPartialReturn(): void {
+    if (!this.partialReturnReason.trim()) {
+      Swal.fire({
+        icon: 'warning',
+        title: 'Missing Information',
+        text: 'Please provide a reason for the return',
+        confirmButtonColor: '#667eea'
+      });
+      return;
+    }
+
+    if (this.partialReturnReason.trim().length < 5) {
+      Swal.fire({
+        icon: 'warning',
+        title: 'Invalid Return Reason',
+        text: 'Return reason must be at least 5 characters long',
+        confirmButtonColor: '#667eea'
+      });
+      return;
+    }
+
+    const selectedItems = this.partialReturnItems.filter(item => item.selected && item.returnQuantity > 0);
+
+    if (selectedItems.length === 0) {
+      Swal.fire({
+        icon: 'warning',
+        title: 'No Items Selected',
+        text: 'Please select at least one product to return',
+        confirmButtonColor: '#667eea'
+      });
+      return;
+    }
+
+    if (!this.selectedInvoice) {
+      Swal.fire({
+        icon: 'error',
+        title: 'Error',
+        text: 'No invoice selected',
+        confirmButtonColor: '#667eea'
+      });
+      return;
+    }
+
+    const totalAmount = this.calculatePartialReturnTotal();
+
+    const payload: PartialReturnPayload = {
+      returnType: 'partial',
+      invoiceId: this.selectedInvoice.invoiceId,
+      orderId: this.selectedInvoice.orderId,
+      returnReason: this.partialReturnReason,
+      refundMethod: this.partialReturnRefundMethod,
+      notes: this.partialReturnNotes,
+      items: selectedItems.map(item => ({
+        productId: item.productId,
+        returnQuantity: item.returnQuantity,
+        returnAmount: item.returnAmount
+      })),
+      totalReturnAmount: totalAmount
+    };
+
+    console.log('📦 Partial Return Payload:', payload);
+    console.log('📊 Item details:');
+    selectedItems.forEach(item => {
+      console.log(`  Product ${item.productId}:`);
+      console.log(`    - Unit Price: ${item.unitPrice}`);
+      console.log(`    - Return Quantity: ${item.returnQuantity}`);
+      console.log(`    - Calculated Amount (unitPrice × quantity): ${item.unitPrice * item.returnQuantity}`);
+      console.log(`    - Sending Return Amount: ${item.returnAmount}`);
+      console.log(`    - Match: ${item.returnAmount === (item.unitPrice * item.returnQuantity)}`);
+    });
+    
+    // Debug: Check authentication
+    const token = this.authService.getToken();
+    const currentUser = this.authService.getCurrentUser();
+    console.log('Auth Status - Token exists:', !!token, 'User:', currentUser?.email, 'Role:', currentUser?.role);
+    
+    this.submittingReturn = true;
+
+    // Call backend API for partial return
+    this.returnService.createPartialReturn(payload).subscribe({
+      next: (response) => {
+        Swal.fire({
+          icon: 'success',
+          title: 'Return Created!',
+          text: `Partial return processed. ${selectedItems.length} item(s) returned. Return ID: ${response.returnId}`,
+          confirmButtonColor: '#667eea',
+          timer: 3000
+        });
+        this.resetReturnProcess();
+        this.loadReturns();
+        this.loadSummary();
+        this.submittingReturn = false;
+      },
+      error: (error) => {
+        console.error('Error creating partial return:', error);
+        console.error('📋 Full error response:', error.error);
+        console.error('📋 Error message:', error.error?.error || error.message);
+        console.error('📋 Error details:', error.error?.details);
+        this.handleReturnError(error);
+        this.submittingReturn = false;
+      }
+    });
+  }
+
+  // ===== RESET & CLEANUP =====
+  resetReturnForms(): void {
+    this.wholeReturnReason = '';
+    this.wholeReturnRefundMethod = 'Cash';
+    this.wholeReturnNotes = '';
+    this.partialReturnReason = '';
+    this.partialReturnRefundMethod = 'Cash';
+    this.partialReturnNotes = '';
+    this.partialReturnItems = [];
+    this.invoiceSearchTerm = '';
+  }
+
+  resetReturnProcess(): void {
+    this.selectedReturnType = null;
+    this.selectedInvoice = null;
+    this.showReturnTypeSelection = false;
+    this.showInvoiceSelection = false;
+    this.showWholeReturnForm = false;
+    this.showPartialReturnForm = false;
+    this.resetReturnForms();
+  }
+
+  cancelReturn(): void {
+    Swal.fire({
+      title: 'Cancel Return?',
+      text: 'All entered information will be lost',
+      icon: 'warning',
+      showCancelButton: true,
+      confirmButtonColor: '#d33',
+      cancelButtonColor: '#667eea',
+      confirmButtonText: 'Yes, cancel it',
+      cancelButtonText: 'Continue Return'
+    }).then((result) => {
+      if (result.isConfirmed) {
+        this.resetReturnProcess();
+      }
+    });
+  }
+
+  // ===== ERROR HANDLING =====
+  handleReturnError(error: any): void {
+    console.error('Return error details:', error);
+    
+    // Handle 401 Unauthorized
+    if (error.status === 401) {
+      Swal.fire({
+        icon: 'error',
+        title: 'Authentication Required',
+        html: `Your session may have expired or you don't have permission to perform this action.<br/><br/>
+               <strong>Status:</strong> ${error.status} ${error.statusText}<br/>
+               <strong>URL:</strong> ${error.url}<br/><br/>
+               Please try logging out and logging back in.`,
+        confirmButtonColor: '#667eea',
+        confirmButtonText: 'Understood',
+        footer: '<a href="/login">Go to Login Page</a>'
+      });
+      return;
+    }
+    
+    // Handle 403 Forbidden
+    if (error.status === 403) {
+      Swal.fire({
+        icon: 'error',
+        title: 'Access Denied',
+        text: 'You do not have permission to perform this action. Please contact an administrator.',
+        confirmButtonColor: '#667eea'
+      });
+      return;
+    }
+    
+    const errorMessage = error.error?.message || error.error?.title || 'Failed to process return';
+    
+    if (errorMessage.includes('quantity cannot exceed')) {
+      Swal.fire({
+        icon: 'error',
+        title: 'Invalid Quantity',
+        text: errorMessage,
+        confirmButtonColor: '#667eea',
+        timer: 5000
+      });
+    } else if (errorMessage.includes('not found')) {
+      Swal.fire({
+        icon: 'error',
+        title: 'Not Found',
+        text: errorMessage,
+        confirmButtonColor: '#667eea'
+      });
+    } else if (errorMessage.includes('already returned')) {
+      Swal.fire({
+        icon: 'error',
+        title: 'Already Returned',
+        text: errorMessage,
+        confirmButtonColor: '#667eea',
+        timer: 5000
+      });
+    } else {
+      Swal.fire({
+        icon: 'error',
+        title: 'Error',
+        html: `<strong>Message:</strong> ${errorMessage}<br/>
+               <strong>Status:</strong> ${error.status || 'Unknown'}<br/>
+               ${error.error?.errors ? '<br/><strong>Validation Errors:</strong><br/>' + JSON.stringify(error.error.errors) : ''}`,
+        confirmButtonColor: '#667eea'
+      });
+    }
   }
 
   updateReturnStatus(returnItem: PurchaseReturnDto, newStatus: string): void {
@@ -363,19 +987,7 @@ export class ReturnsComponent implements OnInit {
     });
   }
 
-  resetForm(): void {
-    this.showForm = false;
-    this.selectedOrder = null;
-    this.returnForm = {
-      orderId: 0,
-      productId: 0,
-      returnQuantity: 1,
-      returnAmount: 0,
-      returnReason: '',
-      refundMethod: 'Cash',
-      notes: ''
-    };
-  }
+  // Old resetForm method removed - now using resetReturnProcess() and resetReturnForms()
 
   getStatusBadgeClass(status: string): string {
     switch (status) {

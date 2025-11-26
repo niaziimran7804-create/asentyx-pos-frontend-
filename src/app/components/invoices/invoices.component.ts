@@ -1,7 +1,15 @@
 import { Component, OnInit } from '@angular/core';
 import { InvoiceService } from '../../services/invoice.service';
 import { OrderService } from '../../services/order.service';
-import { InvoiceDto, CreateInvoiceDto, ShopConfigurationDto, UpdateShopConfigurationDto } from '../../models/invoice.models';
+import { 
+  InvoiceDto, 
+  CreateInvoiceDto, 
+  ShopConfigurationDto, 
+  UpdateShopConfigurationDto,
+  PaymentDto,
+  CreatePaymentDto,
+  PaymentSummaryDto
+} from '../../models/invoice.models';
 import { InvoiceFilterDto } from '../../models/invoice-filter.models';
 import { OrderDto } from '../../models/order.models';
 import { AuthService } from '../../services/auth.service';
@@ -47,6 +55,20 @@ export class InvoicesComponent implements OnInit {
   selectedInvoiceIds: Set<number> = new Set();
   showBulkActions: boolean = false;
 
+  // Payment properties
+  showPaymentModal: boolean = false;
+  showPaymentHistoryModal: boolean = false;
+  selectedInvoice: InvoiceDto | null = null;
+  payments: PaymentDto[] = [];
+  paymentSummary: PaymentSummaryDto | null = null;
+  paymentForm: CreatePaymentDto = {
+    invoiceId: 0,
+    paymentAmount: 0,
+    paymentMethod: 'Cash',
+    referenceNumber: '',
+    notes: ''
+  };
+
   // Sidebar and Navbar properties
   isSidebarCollapsed = false;
   sidebarWidth = '280px';
@@ -74,6 +96,7 @@ export class InvoicesComponent implements OnInit {
     this.loadInvoices();
     this.loadOrders();
     this.loadShopConfiguration();
+    this.loadPaymentSummary();
     this.currentUser = {
       name: localStorage.getItem('userName') || 'User',
       role: localStorage.getItem('userRole') || 'cashier'
@@ -390,6 +413,189 @@ export class InvoicesComponent implements OnInit {
     setTimeout(() => {
       this.clearSelection();
     }, 500);
+  }
+
+  // Payment Management Methods
+  loadPaymentSummary(): void {
+    this.invoiceService.getPaymentSummary().subscribe({
+      next: (data) => {
+        this.paymentSummary = data;
+      },
+      error: (error) => console.error('Error loading payment summary:', error)
+    });
+  }
+
+  showAddPaymentModal(invoice: InvoiceDto): void {
+    this.selectedInvoice = invoice;
+    this.paymentForm = {
+      invoiceId: invoice.invoiceId,
+      paymentAmount: invoice.remainingAmount || 0,
+      paymentMethod: 'Cash',
+      referenceNumber: '',
+      notes: ''
+    };
+    this.showPaymentModal = true;
+  }
+
+  closePaymentModal(): void {
+    this.showPaymentModal = false;
+    this.selectedInvoice = null;
+    this.resetPaymentForm();
+  }
+
+  resetPaymentForm(): void {
+    this.paymentForm = {
+      invoiceId: 0,
+      paymentAmount: 0,
+      paymentMethod: 'Cash',
+      referenceNumber: '',
+      notes: ''
+    };
+  }
+
+  addPayment(): void {
+    if (!this.selectedInvoice) return;
+
+    // Validation
+    if (this.paymentForm.paymentAmount <= 0) {
+      Swal.fire({
+        icon: 'warning',
+        title: 'Invalid Amount',
+        text: 'Payment amount must be greater than 0',
+        confirmButtonColor: '#667eea'
+      });
+      return;
+    }
+
+    if (this.paymentForm.paymentAmount > this.selectedInvoice.remainingAmount) {
+      Swal.fire({
+        icon: 'warning',
+        title: 'Amount Exceeds Balance',
+        text: `Payment amount cannot exceed remaining balance of ${this.formatCurrency(this.selectedInvoice.remainingAmount)}`,
+        confirmButtonColor: '#667eea'
+      });
+      return;
+    }
+
+    this.invoiceService.addPayment(this.paymentForm).subscribe({
+      next: (payment) => {
+        Swal.fire({
+          icon: 'success',
+          title: 'Payment Added!',
+          text: `Payment of ${this.formatCurrency(payment.paymentAmount)} has been recorded`,
+          confirmButtonColor: '#667eea',
+          timer: 2000
+        });
+        this.loadInvoices();
+        this.loadPaymentSummary();
+        this.closePaymentModal();
+      },
+      error: (error) => {
+        Swal.fire({
+          icon: 'error',
+          title: 'Error',
+          text: error.error?.message || 'Failed to add payment. Please try again.',
+          confirmButtonColor: '#667eea'
+        });
+      }
+    });
+  }
+
+  viewPaymentHistory(invoice: InvoiceDto): void {
+    this.selectedInvoice = invoice;
+    this.loadPaymentHistory(invoice.invoiceId);
+  }
+
+  loadPaymentHistory(invoiceId: number): void {
+    this.invoiceService.getInvoicePayments(invoiceId).subscribe({
+      next: (data) => {
+        this.payments = data;
+        this.showPaymentHistoryModal = true;
+      },
+      error: (error) => {
+        Swal.fire({
+          icon: 'error',
+          title: 'Error',
+          text: 'Failed to load payment history',
+          confirmButtonColor: '#667eea'
+        });
+      }
+    });
+  }
+
+  closePaymentHistoryModal(): void {
+    this.showPaymentHistoryModal = false;
+    this.selectedInvoice = null;
+    this.payments = [];
+  }
+
+  deletePayment(paymentId: number): void {
+    Swal.fire({
+      title: 'Delete Payment?',
+      text: 'This action cannot be undone',
+      icon: 'warning',
+      showCancelButton: true,
+      confirmButtonColor: '#d33',
+      cancelButtonColor: '#667eea',
+      confirmButtonText: 'Yes, delete it!'
+    }).then((result) => {
+      if (result.isConfirmed) {
+        this.invoiceService.deletePayment(paymentId).subscribe({
+          next: () => {
+            Swal.fire({
+              icon: 'success',
+              title: 'Deleted!',
+              text: 'Payment has been deleted',
+              confirmButtonColor: '#667eea',
+              timer: 2000
+            });
+            if (this.selectedInvoice) {
+              this.loadPaymentHistory(this.selectedInvoice.invoiceId);
+            }
+            this.loadInvoices();
+            this.loadPaymentSummary();
+          },
+          error: (error) => {
+            Swal.fire({
+              icon: 'error',
+              title: 'Error',
+              text: 'Failed to delete payment',
+              confirmButtonColor: '#667eea'
+            });
+          }
+        });
+      }
+    });
+  }
+
+  getStatusBadgeClass(status: string): string {
+    switch (status?.toLowerCase()) {
+      case 'paid':
+      case 'fully paid':
+        return 'bg-success';
+      case 'partially paid':
+        return 'bg-warning';
+      case 'unpaid':
+      case 'pending':
+        return 'bg-danger';
+      case 'overdue':
+        return 'bg-dark';
+      default:
+        return 'bg-secondary';
+    }
+  }
+
+  getPaymentProgress(invoice: InvoiceDto): number {
+    if (!invoice.totalAmount || invoice.totalAmount === 0) return 0;
+    return (invoice.paidAmount / invoice.totalAmount) * 100;
+  }
+
+  formatCurrency(amount: number): string {
+    return new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(amount || 0);
+  }
+
+  isOverdue(dueDate: Date): boolean {
+    return new Date(dueDate) < new Date();
   }
 }
 
