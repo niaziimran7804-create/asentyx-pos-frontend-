@@ -25,9 +25,12 @@ export class BarcodesComponent implements OnInit {
     { label: 'Dashboard', icon: 'fas fa-home', route: '/dashboard' },
     { label: 'Products', icon: 'fas fa-box', route: '/products' },
     { label: 'Orders', icon: 'fas fa-shopping-cart', route: '/orders' },
+    { label: 'Returns', icon: 'fas fa-undo', route: '/returns' },
     { label: 'Categories', icon: 'fas fa-th-large', route: '/categories' },
     { label: 'Barcodes', icon: 'fas fa-barcode', route: '/barcodes' },
     { label: 'Invoices', icon: 'fas fa-file-invoice', route: '/invoices' },
+    { label: 'Accounting', icon: 'fas fa-calculator', route: '/accounting' },
+    { label: 'Customer Balance', icon: 'fas fa-users-cog', route: '/customer-balance' },
     { label: 'Expenses', icon: 'fas fa-wallet', route: '/expenses' },
     { label: 'Users', icon: 'fas fa-users', route: '/users' }
   ];

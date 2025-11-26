@@ -66,10 +66,11 @@ export class DashboardComponent implements OnInit {
       { label: 'Returns', icon: 'fas fa-undo', route: '/returns' },
       { label: 'Categories', icon: 'fas fa-tags', route: '/categories' },
       { label: 'Invoices', icon: 'fas fa-file-invoice', route: '/invoices' },
-      { label: 'Accounting', icon: 'fas fa-calculator', route: '/accounting' }
+      { label: 'Accounting', icon: 'fas fa-calculator', route: '/accounting' },
+      { label: 'Customer Balance', icon: 'fas fa-users-cog', route: '/customer-balance' }
     ];
 
-    if (this.isAdmin() || this.isCashier()) {
+    if (this.isAdmin() || this.getUserRole() === 'Cashier') {
       this.menuItems.push({ label: 'Barcodes', icon: 'fas fa-barcode', route: '/barcodes' });
     }
 

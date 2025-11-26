@@ -144,7 +144,9 @@ export class ReturnsComponent implements OnInit {
       { label: 'Orders', icon: 'fas fa-shopping-cart', route: '/orders' },
       { label: 'Returns', icon: 'fas fa-undo', route: '/returns' },
       { label: 'Categories', icon: 'fas fa-tags', route: '/categories' },
-      { label: 'Invoices', icon: 'fas fa-file-invoice', route: '/invoices' }
+      { label: 'Invoices', icon: 'fas fa-file-invoice', route: '/invoices' },
+      { label: 'Accounting', icon: 'fas fa-calculator', route: '/accounting' },
+      { label: 'Customer Balance', icon: 'fas fa-users-cog', route: '/customer-balance' }
     ];
 
     if (this.isAdmin() || this.isCashier()) {
@@ -394,14 +396,14 @@ export class ReturnsComponent implements OnInit {
     });
     
     // Calculate actual unit price from total amount
-    const actualUnitPrice = invoice.order.orderQuantity > 0 
+    const actualUnitPrice = (invoice.order.orderQuantity && invoice.order.orderQuantity > 0)
       ? invoice.order.totalAmount / invoice.order.orderQuantity 
-      : invoice.order.productMSRP;
+      : (invoice.order.productMSRP || 0);
 
     console.log('Calculated unit price:', actualUnitPrice);
 
     const product = {
-      productId: invoice.order.productId,
+      productId: invoice.order.productId || 0,
       productName: invoice.order.productName || `Product ${invoice.order.productId}`,
       quantity: invoice.order.orderQuantity || 1,
       unitPrice: actualUnitPrice,

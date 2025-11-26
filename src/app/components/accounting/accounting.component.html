@@ -82,6 +82,14 @@
           <h3>Total Expenses</h3>
           <div class="value">{{ formatCurrency(summary?.totalExpenses || 0) }}</div>
         </div>
+        <div class="summary-card negative">
+          <h3>Sales Returns</h3>
+          <div class="value">{{ formatCurrency(summary?.totalReturnAmount || totalReturnsAmount) }}</div>
+          <small class="text-muted d-block mt-1">
+            <span *ngIf="summary && summary.totalReturns">{{ summary.totalReturns }} returns</span>
+            <span *ngIf="!summary?.totalReturns && salesReturns.length > 0">{{ salesReturns.length }} returns</span>
+          </small>
+        </div>
         <div class="summary-card" [class.positive]="(summary?.netProfit || 0) > 0" [class.negative]="(summary?.netProfit || 0) < 0">
           <h3>Net Profit</h3>
           <div class="value">{{ formatCurrency(summary?.netProfit || 0) }}</div>
@@ -145,17 +153,45 @@
       <!-- Top Products -->
       <div class="data-table-section">
         <h3><i class="fas fa-star"></i> Top Selling Products</h3>
-        <div class="top-products-list">
-          <div class="product-item" *ngFor="let product of topProducts">
-            <div class="product-info">
-              <h4>{{ product.productName }}</h4>
-              <p>{{ product.orderCount }} orders</p>
-            </div>
-            <div class="product-revenue">
-              <div class="amount">{{ formatCurrency(product.totalRevenue) }}</div>
-              <div class="quantity">Qty: {{ product.totalQuantity }}</div>
+        <div class="row g-3">
+          <div class="col-md-6" *ngFor="let product of topProducts; let i = index">
+            <div class="card border-0 shadow-sm h-100 hover-card">
+              <div class="card-body">
+                <div class="d-flex align-items-start justify-content-between">
+                  <div class="flex-grow-1">
+                    <div class="d-flex align-items-center mb-2">
+                      <div class="bg-primary bg-opacity-10 p-2 rounded me-2">
+                        <i class="fas fa-box text-primary"></i>
+                      </div>
+                      <div>
+                        <h5 class="mb-0 fw-bold">{{ product.productName }}</h5>
+                        <small class="text-muted"><i class="fas fa-shopping-cart me-1"></i>{{ product.orderCount }} orders</small>
+                      </div>
+                    </div>
+                    <div class="d-flex justify-content-between align-items-center mt-3">
+                      <div>
+                        <small class="text-muted d-block">Total Revenue</small>
+                        <h4 class="mb-0 text-success">{{ formatCurrency(product.totalRevenue) }}</h4>
+                      </div>
+                      <div class="text-end">
+                        <small class="text-muted d-block">Quantity Sold</small>
+                        <h4 class="mb-0 text-primary">{{ product.totalQuantity }}</h4>
+                      </div>
+                    </div>
+                  </div>
+                  <div class="ms-2">
+                    <span class="badge bg-warning text-dark rounded-circle" style="width: 35px; height: 35px; display: flex; align-items: center; justify-content: center; font-size: 16px;">
+                      #{{ i + 1 }}
+                    </span>
+                  </div>
+                </div>
+              </div>
             </div>
           </div>
+        </div>
+        <div *ngIf="topProducts.length === 0" class="text-center py-5 text-muted">
+          <i class="fas fa-box-open fa-3x mb-3 opacity-50"></i>
+          <p class="mb-0">No product sales data available</p>
         </div>
       </div>
 
@@ -169,6 +205,7 @@
               <th>Sales</th>
               <th>Orders</th>
               <th>Expenses</th>
+              <th>Refunds</th>
               <th>Profit</th>
               <th>Avg Order</th>
             </tr>
@@ -179,10 +216,53 @@
               <td>{{ formatCurrency(day.totalSales) }}</td>
               <td>{{ day.totalOrders }}</td>
               <td>{{ formatCurrency(day.totalExpenses) }}</td>
+              <td class="text-danger">{{ formatCurrency(day.totalRefunds) }}</td>
               <td [style.color]="day.netProfit > 0 ? '#48bb78' : '#f56565'">
                 {{ formatCurrency(day.netProfit) }}
               </td>
               <td>{{ formatCurrency(day.averageOrderValue) }}</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <!-- Sales Returns Table -->
+      <div class="data-table-section" *ngIf="salesReturns.length > 0">
+        <h3><i class="fas fa-undo"></i> Sales Returns</h3>
+        <table class="data-table">
+          <thead>
+            <tr>
+              <th>Date</th>
+              <th>Return ID</th>
+              <th>Description</th>
+              <th>Return Amount</th>
+              <th>Profit Impact</th>
+              <th>Payment Method</th>
+              <th>Items</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr *ngFor="let returnEntry of salesReturns">
+              <td>{{ formatDate(returnEntry.entryDate) }}</td>
+              <td>#{{ returnEntry.referenceId }}</td>
+              <td>{{ returnEntry.description }}</td>
+              <td class="text-danger">-{{ formatCurrency(returnEntry.amount) }}</td>
+              <td class="text-danger">{{ formatCurrency(returnEntry.profitImpact || 0) }}</td>
+              <td><span class="badge bg-primary">{{ returnEntry.paymentMethod || 'N/A' }}</span></td>
+              <td>
+                <div *ngIf="returnEntry.returnedItems && returnEntry.returnedItems.length > 0">
+                  <small *ngFor="let item of returnEntry.returnedItems" class="d-block">
+                    {{ item.productName }} ({{ item.quantity }}) - {{ formatCurrency(item.amount) }}
+                  </small>
+                </div>
+                <span *ngIf="!returnEntry.returnedItems || returnEntry.returnedItems.length === 0">-</span>
+              </td>
+            </tr>
+            <tr class="table-info fw-bold">
+              <td colspan="3" class="text-end">Total Returns:</td>
+              <td class="text-danger">-{{ formatCurrency(totalReturnsAmount) }}</td>
+              <td class="text-danger">{{ formatCurrency(totalReturnsProfitImpact) }}</td>
+              <td colspan="2">{{ salesReturns.length }} return(s)</td>
             </tr>
           </tbody>
         </table>
@@ -207,6 +287,7 @@
               <th>Description</th>
               <th>Amount</th>
               <th>Payment Method</th>
+              <th>Reference</th>
               <th>Created By</th>
               <th *ngIf="isAdmin()">Actions</th>
             </tr>
@@ -215,20 +296,40 @@
             <tr *ngFor="let entry of entries">
               <td>{{ formatDate(entry.entryDate) }}</td>
               <td>
-                <span [style.color]="entry.entryType === 'Income' || entry.entryType === 'Sale' ? '#48bb78' : '#f56565'">
-                  {{ entry.entryType }}
+                <span class="badge" [ngClass]="getEntryTypeBadgeClass(entry.entryType)">
+                  {{ getEntryTypeLabel(entry.entryType) }}
                 </span>
               </td>
-              <td>{{ entry.description }}</td>
+              <td>
+                {{ entry.description }}
+                <div *ngIf="entry.returnedItems && entry.returnedItems.length > 0" class="mt-1">
+                  <small class="text-muted" *ngFor="let item of entry.returnedItems">
+                    • {{ item.productName }} ({{ item.quantity }})
+                  </small>
+                </div>
+              </td>
               <td [style.color]="entry.entryType === 'Income' || entry.entryType === 'Sale' ? '#48bb78' : '#f56565'">
-                {{ formatCurrency(entry.amount) }}
+                <span *ngIf="entry.entryType === 'SalesReturn' || entry.entryType === 'Expense' || entry.entryType === 'Refund'">-</span>{{ formatCurrency(entry.amount) }}
+                <small class="d-block text-muted" *ngIf="entry.profitImpact">
+                  Profit Impact: {{ formatCurrency(entry.profitImpact) }}
+                </small>
               </td>
               <td>{{ entry.paymentMethod || '-' }}</td>
+              <td>
+                <span *ngIf="entry.referenceId" class="badge bg-info">#{{ entry.referenceId }}</span>
+                <span *ngIf="!entry.referenceId">-</span>
+              </td>
               <td>{{ entry.createdBy }}</td>
               <td *ngIf="isAdmin()">
                 <button class="delete-btn" (click)="deleteEntry(entry.entryId)">
                   <i class="fas fa-trash"></i>
                 </button>
+              </td>
+            </tr>
+            <tr *ngIf="entries.length === 0">
+              <td colspan="8" class="text-center py-5">
+                <i class="fas fa-receipt fa-3x mb-3 text-muted opacity-50"></i>
+                <p class="mb-0 text-muted">No transactions found. Click "Add Entry" to create your first transaction.</p>
               </td>
             </tr>
           </tbody>
@@ -276,6 +377,7 @@
           <option value="Purchase">Purchase</option>
           <option value="Payment">Payment</option>
           <option value="Refund">Refund</option>
+          <option value="SalesReturn">Sales Return</option>
         </select>
       </div>
 

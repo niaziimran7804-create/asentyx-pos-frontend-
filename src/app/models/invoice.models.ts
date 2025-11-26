@@ -8,8 +8,8 @@ export interface InvoiceDto {
   dueDate: Date;
   status: string;
   totalAmount: number;
-  paidAmount: number;
-  remainingAmount: number;
+  amountPaid: number;
+  balance: number;
   order: OrderDto;
   shopConfig: ShopConfigurationDto;
   payments?: PaymentDto[];
@@ -33,11 +33,11 @@ export interface PaymentDto {
 }
 
 export interface CreatePaymentDto {
-  invoiceId: number;
-  paymentAmount: number;
-  paymentMethod: string; // "Cash", "Card", "Online", "Check"
-  referenceNumber?: string;
+  amount: number;
+  paymentMethod: string;
   notes?: string;
+  paymentDate?: Date;
+  transactionReference?: string;
 }
 
 export interface PaymentSummaryDto {

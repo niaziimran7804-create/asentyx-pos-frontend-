@@ -22,7 +22,7 @@ export class AccountingService {
   constructor(private http: HttpClient) { }
 
   // Accounting Entries
-  getAccountingEntries(filter?: AccountingFilterDto): Observable<AccountingEntryDto[]> {
+  getAccountingEntries(filter?: AccountingFilterDto): Observable<any> {
     let params = new HttpParams();
     if (filter) {
       if (filter.startDate) params = params.set('startDate', filter.startDate.toISOString());
@@ -33,7 +33,7 @@ export class AccountingService {
       if (filter.minAmount) params = params.set('minAmount', filter.minAmount.toString());
       if (filter.maxAmount) params = params.set('maxAmount', filter.maxAmount.toString());
     }
-    return this.http.get<AccountingEntryDto[]>(`${this.apiUrl}/entries`, { params });
+    return this.http.get<any>(`${this.apiUrl}/entries`, { params });
   }
 
   createAccountingEntry(entry: CreateAccountingEntryDto): Observable<AccountingEntryDto> {
@@ -82,6 +82,14 @@ export class AccountingService {
     if (startDate) params = params.set('startDate', startDate.toISOString());
     if (endDate) params = params.set('endDate', endDate.toISOString());
     return this.http.get<TopProductDto[]>(`${this.apiUrl}/top-products`, { params });
+  }
+
+  // Sales Returns
+  getSalesReturns(startDate?: Date, endDate?: Date): Observable<AccountingEntryDto[]> {
+    let params = new HttpParams().set('entryType', 'SalesReturn');
+    if (startDate) params = params.set('startDate', startDate.toISOString());
+    if (endDate) params = params.set('endDate', endDate.toISOString());
+    return this.http.get<AccountingEntryDto[]>(`${this.apiUrl}/entries`, { params });
   }
 
   // Export Reports

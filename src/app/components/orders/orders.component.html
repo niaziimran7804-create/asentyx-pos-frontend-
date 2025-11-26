@@ -372,7 +372,7 @@
       <div class="modal-body" *ngIf="selectedOrderForUpdate">
         <div class="alert alert-info">
           <p class="mb-1"><strong>Order ID:</strong> #{{ selectedOrderForUpdate.orderId }}</p>
-          <p class="mb-1"><strong>Customer:</strong> {{ selectedOrderForUpdate.customerFullName || 'N/A' }}</p>
+          <p class="mb-1"><strong>Customer:</strong> {{ selectedOrderForUpdate.customerName || selectedOrderForUpdate.customerFullName || 'N/A' }}</p>
           <p class="mb-1"><strong>Total Amount:</strong> ${{ selectedOrderForUpdate.totalAmount }}</p>
           <p class="mb-0"><strong>Current Status:</strong> 
             <span class="badge" 

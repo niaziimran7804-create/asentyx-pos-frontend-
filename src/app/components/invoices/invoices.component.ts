@@ -62,11 +62,11 @@ export class InvoicesComponent implements OnInit {
   payments: PaymentDto[] = [];
   paymentSummary: PaymentSummaryDto | null = null;
   paymentForm: CreatePaymentDto = {
-    invoiceId: 0,
-    paymentAmount: 0,
+    amount: 0,
     paymentMethod: 'Cash',
-    referenceNumber: '',
-    notes: ''
+    transactionReference: '',
+    notes: '',
+    paymentDate: new Date()
   };
 
   // Sidebar and Navbar properties
@@ -78,9 +78,12 @@ export class InvoicesComponent implements OnInit {
     { label: 'Dashboard', icon: 'fas fa-home', route: '/dashboard' },
     { label: 'Products', icon: 'fas fa-box', route: '/products' },
     { label: 'Orders', icon: 'fas fa-shopping-cart', route: '/orders' },
+    { label: 'Returns', icon: 'fas fa-undo', route: '/returns' },
     { label: 'Categories', icon: 'fas fa-th-large', route: '/categories' },
     { label: 'Barcodes', icon: 'fas fa-barcode', route: '/barcodes' },
     { label: 'Invoices', icon: 'fas fa-file-invoice', route: '/invoices' },
+    { label: 'Accounting', icon: 'fas fa-calculator', route: '/accounting' },
+    { label: 'Customer Balance', icon: 'fas fa-users-cog', route: '/customer-balance' },
     { label: 'Expenses', icon: 'fas fa-wallet', route: '/expenses' },
     { label: 'Users', icon: 'fas fa-users', route: '/users' }
   ];
@@ -428,11 +431,11 @@ export class InvoicesComponent implements OnInit {
   showAddPaymentModal(invoice: InvoiceDto): void {
     this.selectedInvoice = invoice;
     this.paymentForm = {
-      invoiceId: invoice.invoiceId,
-      paymentAmount: invoice.remainingAmount || 0,
+      amount: invoice.balance || 0,
       paymentMethod: 'Cash',
-      referenceNumber: '',
-      notes: ''
+      transactionReference: '',
+      notes: '',
+      paymentDate: new Date()
     };
     this.showPaymentModal = true;
   }
@@ -445,11 +448,11 @@ export class InvoicesComponent implements OnInit {
 
   resetPaymentForm(): void {
     this.paymentForm = {
-      invoiceId: 0,
-      paymentAmount: 0,
+      amount: 0,
       paymentMethod: 'Cash',
-      referenceNumber: '',
-      notes: ''
+      transactionReference: '',
+      notes: '',
+      paymentDate: new Date()
     };
   }
 
@@ -457,7 +460,7 @@ export class InvoicesComponent implements OnInit {
     if (!this.selectedInvoice) return;
 
     // Validation
-    if (this.paymentForm.paymentAmount <= 0) {
+    if (this.paymentForm.amount <= 0) {
       Swal.fire({
         icon: 'warning',
         title: 'Invalid Amount',
@@ -467,17 +470,17 @@ export class InvoicesComponent implements OnInit {
       return;
     }
 
-    if (this.paymentForm.paymentAmount > this.selectedInvoice.remainingAmount) {
+    if (this.paymentForm.amount > this.selectedInvoice.balance) {
       Swal.fire({
         icon: 'warning',
         title: 'Amount Exceeds Balance',
-        text: `Payment amount cannot exceed remaining balance of ${this.formatCurrency(this.selectedInvoice.remainingAmount)}`,
+        text: `Payment amount cannot exceed remaining balance of ${this.formatCurrency(this.selectedInvoice.balance)}`,
         confirmButtonColor: '#667eea'
       });
       return;
     }
 
-    this.invoiceService.addPayment(this.paymentForm).subscribe({
+    this.invoiceService.addPayment(this.selectedInvoice.invoiceId, this.paymentForm).subscribe({
       next: (payment) => {
         Swal.fire({
           icon: 'success',
@@ -587,7 +590,7 @@ export class InvoicesComponent implements OnInit {
 
   getPaymentProgress(invoice: InvoiceDto): number {
     if (!invoice.totalAmount || invoice.totalAmount === 0) return 0;
-    return (invoice.paidAmount / invoice.totalAmount) * 100;
+    return (invoice.amountPaid / invoice.totalAmount) * 100;
   }
 
   formatCurrency(amount: number): string {

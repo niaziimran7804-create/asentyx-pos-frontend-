@@ -17,6 +17,7 @@ import { BarcodesComponent } from './components/barcodes/barcodes.component';
 import { InvoicesComponent } from './components/invoices/invoices.component';
 import { AccountingComponent } from './components/accounting/accounting.component';
 import { ReturnsComponent } from './components/returns/returns.component';
+import { CustomerBalanceComponent } from './components/customer-balance/customer-balance.component';
 import { AuthInterceptor } from './interceptors/auth.interceptor';
 import { AuthGuard } from './guards/auth.guard';
 import { SidebarComponent } from './shared/components/sidebar/sidebar.component';
@@ -35,7 +36,8 @@ import { NavbarComponent } from './shared/components/navbar/navbar.component';
     BarcodesComponent,
     InvoicesComponent,
     AccountingComponent,
-    ReturnsComponent
+    ReturnsComponent,
+    CustomerBalanceComponent
   ],
   imports: [
     BrowserModule,

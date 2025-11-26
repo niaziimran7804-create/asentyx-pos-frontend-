@@ -1,17 +1,19 @@
 export interface OrderDto {
   orderId: number;
-  userId: number;
+  customerId?: number;
+  userId?: number;
   barCodeId?: number;
   date: Date;
-  orderQuantity: number;
-  productId: number;
-  productMSRP: number;
+  orderQuantity?: number;
+  productId?: number;
+  productMSRP?: number;
   status: string;
   totalAmount: number;
   orderStatus: string;
   paymentMethod: string;
   productName?: string;
   userName?: string;
+  customerName?: string;
   customerFullName?: string;
   customerPhone?: string;
   customerAddress?: string;
@@ -41,6 +43,8 @@ export interface CreateOrderDto {
   customerAddress?: string;
   customerEmail?: string;
   items: OrderItemDto[];
+  paidAmount?: number;
+  remainingAmount?: number;
 }
 
 export interface UpdateOrderStatusDto {

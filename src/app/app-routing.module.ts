@@ -11,6 +11,7 @@ import { BarcodesComponent } from './components/barcodes/barcodes.component';
 import { InvoicesComponent } from './components/invoices/invoices.component';
 import { AccountingComponent } from './components/accounting/accounting.component';
 import { ReturnsComponent } from './components/returns/returns.component';
+import { CustomerBalanceComponent } from './components/customer-balance/customer-balance.component';
 import { AuthGuard } from './guards/auth.guard';
 
 const routes: Routes = [
@@ -25,6 +26,7 @@ const routes: Routes = [
   { path: 'invoices', component: InvoicesComponent, canActivate: [AuthGuard] },
   { path: 'accounting', component: AccountingComponent, canActivate: [AuthGuard] },
   { path: 'returns', component: ReturnsComponent, canActivate: [AuthGuard] },
+  { path: 'customer-balance', component: CustomerBalanceComponent, canActivate: [AuthGuard] },
   { path: '', redirectTo: '/login', pathMatch: 'full' },
   { path: '**', redirectTo: '/login' }
 ];

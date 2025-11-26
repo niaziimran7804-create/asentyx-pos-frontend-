@@ -67,6 +67,8 @@ export class OrdersComponent implements OnInit {
     { label: 'Categories', icon: 'fas fa-th-large', route: '/categories' },
     { label: 'Barcodes', icon: 'fas fa-barcode', route: '/barcodes' },
     { label: 'Invoices', icon: 'fas fa-file-invoice', route: '/invoices' },
+    { label: 'Accounting', icon: 'fas fa-calculator', route: '/accounting' },
+    { label: 'Customer Balance', icon: 'fas fa-users-cog', route: '/customer-balance' },
     { label: 'Expenses', icon: 'fas fa-wallet', route: '/expenses' },
     { label: 'Users', icon: 'fas fa-users', route: '/users' }
   ];
@@ -238,6 +240,16 @@ export class OrdersComponent implements OnInit {
     
     // Set orderQuantity to total quantity of all items in cart
     this.orderForm.orderQuantity = this.cartItems.reduce((total, item) => total + item.quantity, 0);
+    
+    // Set payment amounts based on payment status
+    const totalAmount = this.getTotalAmount();
+    if (this.orderPaymentStatus === 'Paid') {
+      this.orderForm.paidAmount = totalAmount;
+      this.orderForm.remainingAmount = 0;
+    } else {
+      this.orderForm.paidAmount = 0;
+      this.orderForm.remainingAmount = totalAmount;
+    }
     
     // If single item order, use that item's details
     if (this.cartItems.length === 1) {
@@ -710,10 +722,10 @@ export class OrdersComponent implements OnInit {
 
               <div style="margin-bottom: 20px; padding: 15px; background: #f8f9fa; border-radius: 8px;">
                 <h5 style="margin: 0 0 10px 0; color: #667eea;"><i class="fas fa-user"></i> Customer Information</h5>
-                <p style="margin: 5px 0;"><strong>Name:</strong> ${order.customerFullName || 'N/A'}</p>
-                <p style="margin: 5px 0;"><strong>Phone:</strong> ${order.customerPhone || 'N/A'}</p>
-                <p style="margin: 5px 0;"><strong>Email:</strong> ${order.customerEmail || 'N/A'}</p>
-                <p style="margin: 5px 0;"><strong>Address:</strong> ${order.customerAddress || 'N/A'}</p>
+                <p style="margin: 5px 0;"><strong>Name:</strong> ${invoice.order.customerFullName || invoice.order.customerName || 'N/A'}</p>
+                <p style="margin: 5px 0;"><strong>Phone:</strong> ${invoice.order.customerPhone || 'N/A'}</p>
+                <p style="margin: 5px 0;"><strong>Email:</strong> ${invoice.order.customerEmail || 'N/A'}</p>
+                <p style="margin: 5px 0;"><strong>Address:</strong> ${invoice.order.customerAddress || 'N/A'}</p>
               </div>
 
               <div style="margin-bottom: 20px;">
@@ -736,8 +748,8 @@ export class OrdersComponent implements OnInit {
               <div style="padding: 15px; background: #e8f5e9; border-radius: 8px; border: 2px solid #4caf50;">
                 <h5 style="margin: 0 0 10px 0; color: #2e7d32;"><i class="fas fa-dollar-sign"></i> Invoice Summary</h5>
                 <p style="margin: 5px 0;"><strong>Total Amount:</strong> <span style="font-size: 1.2em; color: #4caf50;">$${invoice.totalAmount}</span></p>
-                <p style="margin: 5px 0;"><strong>Paid Amount:</strong> $${invoice.paidAmount}</p>
-                <p style="margin: 5px 0;"><strong>Remaining:</strong> <span style="color: ${invoice.remainingAmount > 0 ? '#f44336' : '#4caf50'};">$${invoice.remainingAmount}</span></p>
+                <p style="margin: 5px 0;"><strong>Paid Amount:</strong> $${invoice.amountPaid}</p>
+                <p style="margin: 5px 0;"><strong>Remaining:</strong> <span style="color: ${invoice.balance > 0 ? '#f44336' : '#4caf50'};">$${invoice.balance}</span></p>
               </div>
             </div>
           `,

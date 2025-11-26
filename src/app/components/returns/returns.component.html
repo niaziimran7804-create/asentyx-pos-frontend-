@@ -380,7 +380,7 @@
                 <td><span class="badge bg-primary">{{ invoice.invoiceNumber || '#' + invoice.invoiceId }}</span></td>
                 <td>{{ invoice.invoiceDate | date:'MMM dd, yyyy' }}</td>
                 <td>
-                  <strong>{{ invoice.order?.customerFullName || 'N/A' }}</strong>
+                  <strong>{{ invoice.order.customerFullName || 'N/A' }}</strong>
                   <div class="text-muted small" *ngIf="invoice.order?.customerPhone">
                     <i class="fas fa-phone me-1"></i>{{ invoice.order.customerPhone }}
                   </div>
@@ -394,7 +394,7 @@
                   </div>
                   <span *ngIf="!invoice.products || invoice.products.length === 0" class="text-muted">No products</span>
                 </td>
-                <td><span class="fw-bold">{{ formatCurrency(invoice.order?.totalAmount || 0) }}</span></td>
+                <td><span class="fw-bold">{{ formatCurrency(invoice.order.totalAmount || 0) }}</span></td>
                 <td class="text-center">
                   <button class="btn btn-sm btn-success" (click)="selectInvoiceForReturn(invoice)">
                     <i class="fas fa-check me-1"></i>Select
@@ -440,10 +440,10 @@
               <strong>Invoice:</strong> {{ previewInvoice.invoiceNumber || '#' + previewInvoice.invoiceId }}
             </div>
             <div class="col-md-4">
-              <strong>Customer:</strong> {{ previewInvoice.order?.customerFullName || 'N/A' }}
+              <strong>Customer:</strong> {{ previewInvoice.order.customerFullName || 'N/A' }}
             </div>
             <div class="col-md-4">
-              <strong>Total:</strong> {{ formatCurrency(previewInvoice.order?.totalAmount || 0) }}
+              <strong>Total:</strong> {{ formatCurrency(previewInvoice.order.totalAmount || 0) }}
             </div>
           </div>
         </div>
@@ -478,7 +478,7 @@
               <tr>
                 <td colspan="3" class="text-end"><strong>Grand Total:</strong></td>
                 <td class="text-end fw-bold fs-5 text-success">
-                  {{ formatCurrency(previewInvoice.order?.totalAmount || 0) }}
+                  {{ formatCurrency(previewInvoice.order.totalAmount || 0) }}
                 </td>
               </tr>
             </tfoot>
@@ -514,7 +514,7 @@
             <div class="col-md-6">
               <p class="mb-1"><strong>Invoice #:</strong> {{ selectedInvoice.invoiceNumber || '#' + selectedInvoice.invoiceId }}</p>
               <p class="mb-1"><strong>Date:</strong> {{ selectedInvoice.invoiceDate | date:'medium' }}</p>
-              <p class="mb-0"><strong>Customer:</strong> {{ selectedInvoice.order?.customerFullName || 'N/A' }}</p>
+              <p class="mb-0"><strong>Customer:</strong> {{ selectedInvoice.order.customerFullName || 'N/A' }}</p>
             </div>
             <div class="col-md-6">
               <p class="mb-1"><strong>Total Amount:</strong> <span class="fs-5 fw-bold text-danger">{{ formatCurrency(calculateWholeReturnAmount()) }}</span></p>
@@ -614,7 +614,7 @@
             </div>
             <div class="col-md-3">
               <strong><i class="fas fa-user me-2"></i>Customer:</strong> 
-              <div class="mt-1">{{ selectedInvoice.order?.customerFullName || 'N/A' }}</div>
+              <div class="mt-1">{{ selectedInvoice.order.customerFullName || 'N/A' }}</div>
             </div>
             <div class="col-md-3">
               <strong><i class="fas fa-calendar me-2"></i>Order Date:</strong> 
@@ -622,7 +622,7 @@
             </div>
             <div class="col-md-3">
               <strong><i class="fas fa-dollar-sign me-2"></i>Original Total:</strong> 
-              <div class="mt-1 fs-5 text-primary">{{ formatCurrency(selectedInvoice.order?.totalAmount || 0) }}</div>
+              <div class="mt-1 fs-5 text-primary">{{ formatCurrency(selectedInvoice.order.totalAmount || 0) }}</div>
             </div>
           </div>
         </div>

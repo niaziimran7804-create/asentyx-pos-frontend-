@@ -1,7 +1,7 @@
 export interface AccountingEntryDto {
   entryId: number;
   entryDate: Date;
-  entryType: 'Income' | 'Expense' | 'Sale' | 'Purchase' | 'Payment' | 'Refund';
+  entryType: 'Income' | 'Expense' | 'Sale' | 'Purchase' | 'Payment' | 'Refund' | 'SalesReturn';
   amount: number;
   description: string;
   referenceId?: number;
@@ -10,10 +10,19 @@ export interface AccountingEntryDto {
   category?: string;
   createdBy: string;
   createdAt: Date;
+  // Sales Return specific fields
+  costOfGoodsSold?: number;
+  profitImpact?: number;
+  returnedItems?: Array<{
+    productId: number;
+    productName: string;
+    quantity: number;
+    amount: number;
+  }>;
 }
 
 export interface CreateAccountingEntryDto {
-  entryType: 'Income' | 'Expense' | 'Sale' | 'Purchase' | 'Payment' | 'Refund';
+  entryType: 'Income' | 'Expense' | 'Sale' | 'Purchase' | 'Payment' | 'Refund' | 'SalesReturn';
   amount: number;
   description: string;
   entryDate?: Date;
@@ -21,6 +30,8 @@ export interface CreateAccountingEntryDto {
   referenceType?: string;
   paymentMethod?: string;
   category?: string;
+  costOfGoodsSold?: number;
+  profitImpact?: number;
 }
 
 export interface DailySalesDto {
@@ -28,6 +39,7 @@ export interface DailySalesDto {
   totalSales: number;
   totalOrders: number;
   totalExpenses: number;
+  totalRefunds: number;
   netProfit: number;
   cashSales: number;
   cardSales: number;
@@ -48,6 +60,8 @@ export interface AccountingSummaryDto {
   netProfit: number;
   totalSales: number;
   totalPurchases: number;
+  totalReturns?: number;
+  totalReturnAmount?: number;
   cashBalance: number;
   period: string;
 }

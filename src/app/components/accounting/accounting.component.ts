@@ -52,6 +52,9 @@ export class AccountingComponent implements OnInit {
   dailySales: DailySalesDto[] = [];
   paymentMethods: PaymentMethodSummaryDto[] = [];
   topProducts: TopProductDto[] = [];
+  salesReturns: AccountingEntryDto[] = [];
+  totalReturnsAmount: number = 0;
+  totalReturnsProfitImpact: number = 0;
 
   // Chart Options
   salesChartOptions: Partial<ChartOptions> | null = null;
@@ -90,7 +93,8 @@ export class AccountingComponent implements OnInit {
       { label: 'Orders', icon: 'fas fa-shopping-cart', route: '/orders' },
       { label: 'Categories', icon: 'fas fa-tags', route: '/categories' },
       { label: 'Invoices', icon: 'fas fa-file-invoice', route: '/invoices' },
-      { label: 'Accounting', icon: 'fas fa-calculator', route: '/accounting' }
+      { label: 'Accounting', icon: 'fas fa-calculator', route: '/accounting' },
+      { label: 'Customer Balance', icon: 'fas fa-users-cog', route: '/customer-balance' }
     ];
 
     if (this.isAdmin() || this.isCashier()) {
@@ -150,7 +154,7 @@ export class AccountingComponent implements OnInit {
   loadDashboardData(): void {
     this.loading = true;
     let completedCalls = 0;
-    const totalCalls = 5;
+    const totalCalls = 6;
     const checkComplete = () => {
       completedCalls++;
       if (completedCalls >= totalCalls) {
@@ -163,6 +167,7 @@ export class AccountingComponent implements OnInit {
     this.loadPaymentMethods(checkComplete);
     this.loadTopProducts(checkComplete);
     this.loadSalesChart(checkComplete);
+    this.loadSalesReturns(checkComplete);
   }
 
   refreshData(): void {
@@ -203,6 +208,18 @@ export class AccountingComponent implements OnInit {
     this.accountingService.getDailySales(7).subscribe({
       next: (data: DailySalesDto[]) => {
         this.dailySales = data;
+        
+        // Calculate total refunds from daily sales if not available in summary
+        if (data && data.length > 0) {
+          const calculatedRefunds = data.reduce((sum, day) => sum + (day.totalRefunds || 0), 0);
+          console.log('💰 Total Refunds from Daily Sales:', calculatedRefunds);
+          
+          // If we don't have returns from accounting entries, use daily sales refunds
+          if (this.totalReturnsAmount === 0) {
+            this.totalReturnsAmount = calculatedRefunds;
+          }
+        }
+        
         callback?.();
       },
       error: (error: any) => {
@@ -256,6 +273,41 @@ export class AccountingComponent implements OnInit {
       },
       error: (error: any) => {
         console.error('Error loading sales chart:', error);
+        callback?.();
+      }
+    });
+  }
+
+  loadSalesReturns(callback?: () => void): void {
+    this.accountingService.getSalesReturns(this.startDate || undefined, this.endDate || undefined).subscribe({
+      next: (data: any) => {
+        console.log('📊 Raw Sales Returns Response:', data);
+        
+        // Ensure data is an array
+        if (!Array.isArray(data)) {
+          console.warn('⚠️ Sales returns response is not an array:', data);
+          this.salesReturns = [];
+          this.totalReturnsAmount = 0;
+          this.totalReturnsProfitImpact = 0;
+          callback?.();
+          return;
+        }
+        
+        this.salesReturns = data;
+        this.totalReturnsAmount = data.reduce((sum, entry) => sum + (entry.amount || 0), 0);
+        this.totalReturnsProfitImpact = data.reduce((sum, entry) => sum + (entry.profitImpact || 0), 0);
+        console.log('✅ Sales Returns Loaded:', {
+          count: data.length,
+          totalAmount: this.totalReturnsAmount,
+          profitImpact: this.totalReturnsProfitImpact
+        });
+        callback?.();
+      },
+      error: (error: any) => {
+        console.error('❌ Error loading sales returns:', error);
+        this.salesReturns = [];
+        this.totalReturnsAmount = 0;
+        this.totalReturnsProfitImpact = 0;
         callback?.();
       }
     });
@@ -385,11 +437,27 @@ export class AccountingComponent implements OnInit {
 
   loadEntries(): void {
     this.accountingService.getAccountingEntries(this.filterForm).subscribe({
-      next: (data) => {
-        this.entries = data;
+      next: (response) => {
+        console.log('📝 Accounting Entries Response:', response);
+        
+        // Handle paginated response
+        if (response && response.entries && Array.isArray(response.entries)) {
+          this.entries = response.entries;
+          console.log('✅ Loaded', this.entries.length, 'entries from paginated response');
+        } 
+        // Handle direct array response (fallback)
+        else if (Array.isArray(response)) {
+          this.entries = response;
+          console.log('✅ Loaded', this.entries.length, 'entries from direct array');
+        } 
+        else {
+          console.warn('⚠️ Unexpected response format:', response);
+          this.entries = [];
+        }
       },
       error: (error) => {
-        console.error('Error loading entries:', error);
+        console.error('❌ Error loading entries:', error);
+        this.entries = [];
       }
     });
   }
@@ -479,33 +547,99 @@ export class AccountingComponent implements OnInit {
       entryType: 'Income',
       amount: 0,
       description: '',
-      entryDate: new Date()
+      entryDate: new Date(),
+      costOfGoodsSold: 0,
+      profitImpact: 0
     };
   }
 
+  getEntryTypeLabel(type: string): string {
+    const labels: { [key: string]: string } = {
+      'Income': 'Income',
+      'Expense': 'Expense',
+      'Sale': 'Sale',
+      'Purchase': 'Purchase',
+      'Payment': 'Payment',
+      'Refund': 'Refund',
+      'SalesReturn': 'Sales Return'
+    };
+    return labels[type] || type;
+  }
+
+  getEntryTypeBadgeClass(type: string): string {
+    const classes: { [key: string]: string } = {
+      'Income': 'bg-success',
+      'Sale': 'bg-success',
+      'Expense': 'bg-danger',
+      'Purchase': 'bg-warning',
+      'Payment': 'bg-info',
+      'Refund': 'bg-secondary',
+      'SalesReturn': 'bg-danger'
+    };
+    return classes[type] || 'bg-secondary';
+  }
+
   exportReport(format: 'csv' | 'pdf'): void {
-    this.accountingService.exportAccountingReport(format, this.filterForm).subscribe({
+    // Prepare filter with date range
+    const exportFilter: AccountingFilterDto = {
+      ...this.filterForm,
+      startDate: this.startDate || undefined,
+      endDate: this.endDate || undefined
+    };
+
+    console.log('📤 Exporting report:', { format, filter: exportFilter });
+
+    this.accountingService.exportAccountingReport(format, exportFilter).subscribe({
       next: (blob) => {
+        console.log('✅ Export successful, blob size:', blob.size);
+        
+        // Create download link
         const url = window.URL.createObjectURL(blob);
         const link = document.createElement('a');
         link.href = url;
-        link.download = `accounting_report.${format}`;
+        
+        // Generate filename with date
+        const dateStr = new Date().toISOString().split('T')[0];
+        link.download = `accounting_report_${dateStr}.${format}`;
+        
+        // Trigger download
+        document.body.appendChild(link);
         link.click();
+        document.body.removeChild(link);
+        
+        // Cleanup
         window.URL.revokeObjectURL(url);
         
         Swal.fire({
           icon: 'success',
           title: 'Success!',
-          text: 'Report exported successfully',
+          text: `Report exported successfully as ${format.toUpperCase()}`,
           confirmButtonColor: '#667eea',
           timer: 2000
         });
       },
       error: (error) => {
+        console.error('❌ Export error:', error);
+        
+        let errorMessage = 'Failed to export report';
+        
+        if (error.status === 404) {
+          errorMessage = 'Export endpoint not found. Please contact administrator.';
+        } else if (error.status === 500) {
+          errorMessage = 'Server error while generating report. Please try again.';
+        } else if (error.error instanceof Blob) {
+          // Try to read error message from blob
+          const reader = new FileReader();
+          reader.onload = () => {
+            console.error('Error details:', reader.result);
+          };
+          reader.readAsText(error.error);
+        }
+        
         Swal.fire({
           icon: 'error',
-          title: 'Error',
-          text: 'Failed to export report',
+          title: 'Export Failed',
+          text: errorMessage,
           confirmButtonColor: '#667eea'
         });
       }

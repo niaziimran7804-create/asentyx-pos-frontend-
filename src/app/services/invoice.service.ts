@@ -105,8 +105,8 @@ export class InvoiceService {
     return this.http.get<PaymentDto[]>(`${this.apiUrl}/${invoiceId}/payments`);
   }
 
-  addPayment(payment: CreatePaymentDto): Observable<PaymentDto> {
-    return this.http.post<PaymentDto>(`${this.apiUrl}/payments`, payment);
+  addPayment(invoiceId: number, payment: CreatePaymentDto): Observable<PaymentDto> {
+    return this.http.post<PaymentDto>(`${this.apiUrl}/${invoiceId}/payments`, payment);
   }
 
   deletePayment(paymentId: number): Observable<void> {
