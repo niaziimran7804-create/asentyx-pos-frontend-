@@ -44,11 +44,10 @@ export class ProductsComponent implements OnInit {
     productPerUnitPrice: 0,
     productMSRP: 0,
     productDiscountRate: 0,
-    productSize: 0,
-    productWeight: 0,
+    productColor: 0,
     productUnitStock: 0,
     stockThreshold: 10,
-    productImage: undefined
+    productImageBase64: null
   };
 
   constructor(
@@ -148,28 +147,46 @@ export class ProductsComponent implements OnInit {
     this.loadProducts();
   }
 
-  createProduct(): void {
-    const formData = new FormData();
-    
-    // Append all form fields
-    formData.append('productName', this.productForm.productName);
-    formData.append('brandId', this.productForm.brandId.toString());
-    formData.append('productStatus', this.productForm.productStatus);
-    formData.append('productQuantityPerUnit', this.productForm.productQuantityPerUnit.toString());
-    formData.append('productPerUnitPrice', this.productForm.productPerUnitPrice.toString());
-    formData.append('productMSRP', this.productForm.productMSRP.toString());
-    formData.append('productDiscountRate', this.productForm.productDiscountRate.toString());
-    formData.append('productSize', this.productForm.productSize.toString());
-    formData.append('productWeight', this.productForm.productWeight.toString());
-    formData.append('productUnitStock', this.productForm.productUnitStock.toString());
-    formData.append('stockThreshold', (this.productForm.stockThreshold || 10).toString());
-    
-    // Append image file if selected
+  // Helper method to convert image file to base64
+  private convertImageToBase64(file: File): Promise<string> {
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onload = () => {
+        const base64String = reader.result as string;
+        // Remove the data:image/...;base64, prefix
+        const base64Data = base64String.split(',')[1];
+        resolve(base64Data);
+      };
+      reader.onerror = (error) => reject(error);
+      reader.readAsDataURL(file);
+    });
+  }
+
+  async createProduct(): Promise<void> {
+    // Convert image to base64 if selected
+    let productImageBase64: string | null = null;
     if (this.selectedImage) {
-      formData.append('image', this.selectedImage);
+      productImageBase64 = await this.convertImageToBase64(this.selectedImage);
     }
+
+    // Create JSON payload matching backend DTO
+    const productPayload: CreateProductDto = {
+      productIdTag: this.productForm.productIdTag,
+      productName: this.productForm.productName,
+      brandId: this.productForm.brandId,
+      productDescription: this.productForm.productDescription,
+      productQuantityPerUnit: this.productForm.productQuantityPerUnit,
+      productPerUnitPrice: this.productForm.productPerUnitPrice,
+      productMSRP: this.productForm.productMSRP,
+      productStatus: this.productForm.productStatus,
+      productDiscountRate: this.productForm.productDiscountRate,
+      productColor: this.productForm.productColor,
+      productUnitStock: this.productForm.productUnitStock,
+      stockThreshold: this.productForm.stockThreshold || 10,
+      productImageBase64: productImageBase64
+    };
     
-    this.productService.createProduct(formData).subscribe({
+    this.productService.createProduct(productPayload).subscribe({
       next: () => {
         Swal.fire({
           icon: 'success',
@@ -209,38 +226,38 @@ export class ProductsComponent implements OnInit {
       productPerUnitPrice: product.productPerUnitPrice,
       productMSRP: product.productMSRP,
       productDiscountRate: product.productDiscountRate,
-      productSize: product.productSize,
-      productColor: product.productColor,
-      productWeight: product.productWeight,
+      productColor: typeof product.productColor === 'string' ? parseInt(product.productColor) || 0 : 0,
       productUnitStock: product.productUnitStock,
       stockThreshold: 10,
-      productImage: product.productImage
+      productImageBase64: product.productImageBase64 || null
     };
     this.showForm = true;
   }
 
-  updateProduct(): void {
+  async updateProduct(): Promise<void> {
     if (this.editingProduct) {
-      const formData = new FormData();
-      
-      // Append all form fields
-      formData.append('productName', this.productForm.productName);
-      formData.append('brandId', this.productForm.brandId.toString());
-      formData.append('productStatus', this.productForm.productStatus);
-      formData.append('productQuantityPerUnit', this.productForm.productQuantityPerUnit.toString());
-      formData.append('productPerUnitPrice', this.productForm.productPerUnitPrice.toString());
-      formData.append('productMSRP', this.productForm.productMSRP.toString());
-      formData.append('productDiscountRate', this.productForm.productDiscountRate.toString());
-      formData.append('productSize', this.productForm.productSize.toString());
-      formData.append('productWeight', this.productForm.productWeight.toString());
-      formData.append('productUnitStock', this.productForm.productUnitStock.toString());
-      
-      // Append new image file if selected
+      // Convert image to base64 if selected
+      let productImageBase64: string | null = null;
       if (this.selectedImage) {
-        formData.append('image', this.selectedImage);
+        productImageBase64 = await this.convertImageToBase64(this.selectedImage);
       }
       
-      this.productService.updateProduct(this.editingProduct.productId, formData).subscribe({
+      // Create JSON payload matching backend DTO
+      const productPayload = {
+        productName: this.productForm.productName,
+        brandId: this.productForm.brandId,
+        productStatus: this.productForm.productStatus,
+        productQuantityPerUnit: this.productForm.productQuantityPerUnit,
+        productPerUnitPrice: this.productForm.productPerUnitPrice,
+        productMSRP: this.productForm.productMSRP,
+        productDiscountRate: this.productForm.productDiscountRate,
+        productColor: this.productForm.productColor,
+        productUnitStock: this.productForm.productUnitStock,
+        stockThreshold: this.productForm.stockThreshold || 10,
+        productImageBase64: productImageBase64 || this.productForm.productImageBase64
+      };
+      
+      this.productService.updateProduct(this.editingProduct.productId, productPayload).subscribe({
         next: () => {
           Swal.fire({
             icon: 'success',
@@ -312,11 +329,10 @@ export class ProductsComponent implements OnInit {
       productPerUnitPrice: 0,
       productMSRP: 0,
       productDiscountRate: 0,
-      productSize: 0,
-      productWeight: 0,
+      productColor: 0,
       productUnitStock: 0,
       stockThreshold: 10,
-      productImage: undefined
+      productImageBase64: null
     };
   }
 
@@ -443,20 +459,21 @@ export class ProductsComponent implements OnInit {
 
       const product: CreateProductDto = {
         productName: row.ProductName || row['Product Name'] || row.Name || '',
-        brandId: brand.brandId,
+        BrandId: brand.brandId,
         productPerUnitPrice: parseFloat(row.Price || row['Unit Price'] || 0),
         productMSRP: parseFloat(row.MSRP || row['MSRP Price'] || 0),
         productUnitStock: parseInt(row.Stock || row.Quantity || 0),
         productStatus: (row.Status || 'YES').toUpperCase() === 'YES' ? 'YES' : 'NO',
         productQuantityPerUnit: parseInt(row.QuantityPerUnit || 0) || 0,
         productDiscountRate: parseFloat(row.DiscountRate || 0) || 0,
-        productSize: parseFloat(row.Size || 0) || 0,
+        productSize: (row.Size || 'Medium').toString(),
         productWeight: parseFloat(row.Weight || 0) || 0,
-        productImage: undefined
+        stockThreshold: parseInt(row.StockThreshold || 10) || 10,
+        productImageBase64: null
       };
 
       // Validate required fields
-      if (!product.productName || product.brandId === 0 || product.productPerUnitPrice <= 0) {
+      if (!product.productName || product.BrandId === 0 || product.productPerUnitPrice <= 0) {
         return null;
       }
 

@@ -21,35 +21,31 @@ export interface ProductDto {
 export interface CreateProductDto {
   productIdTag?: string;
   productName: string;
-  brandId: number;
+  brandId: number;  // lowercase to match backend DTO
   productDescription?: string;
   productQuantityPerUnit: number;
   productPerUnitPrice: number;
   productMSRP: number;
   productStatus: string;
   productDiscountRate: number;
-  productSize: number;
-  productColor?: string;
-  productWeight: number;
+  productColor?: number;  // number to match backend
   productUnitStock: number;
   stockThreshold?: number;
-  productImage?: string;
-  productImageBase64?: string;
+  productImageBase64?: string | null;
 }
 
 export interface UpdateProductDto {
   productName: string;
-  brandId: number;
+  brandId: number;  // lowercase to match backend DTO
   productDescription?: string;
   productQuantityPerUnit: number;
   productPerUnitPrice: number;
   productMSRP: number;
   productStatus: string;
   productDiscountRate: number;
-  productSize: number;
-  productColor?: string;
-  productWeight: number;
+  productColor?: number;  // number to match backend
   productUnitStock: number;
-  productImage?: string;
+  stockThreshold?: number;
+  productImageBase64?: string | null;
 }
 
