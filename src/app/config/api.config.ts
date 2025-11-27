@@ -1,4 +1,4 @@
 export const API_CONFIG = {
-  baseUrl: 'https://localhost:7000/api',
-  proxyTarget: 'https://localhost:7000/api'
+  baseUrl: 'http://www.asentyx.com:5000/api/',
+  proxyTarget: 'https://www.asentyx.com:5000/api/'
 };
