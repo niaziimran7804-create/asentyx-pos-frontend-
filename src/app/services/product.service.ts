@@ -7,7 +7,7 @@ import { ProductDto, CreateProductDto, UpdateProductDto } from '../models/produc
   providedIn: 'root'
 })
 export class ProductService {
-  private apiUrl = 'http://asentyx.com:5000/api/products';
+  private apiUrl = 'https://asentyx.com:5000/api/products';
 
   constructor(private http: HttpClient) { }
 

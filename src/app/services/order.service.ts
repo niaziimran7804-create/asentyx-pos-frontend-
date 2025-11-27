@@ -7,7 +7,7 @@ import { OrderDto, CreateOrderDto, UpdateOrderStatusDto, CustomerSearchDto, Bulk
   providedIn: 'root'
 })
 export class OrderService {
-  private apiUrl = 'http://asentyx.com:5000/api/orders';
+  private apiUrl = 'https://asentyx.com:5000/api/orders';
 
   constructor(private http: HttpClient) { }
 
