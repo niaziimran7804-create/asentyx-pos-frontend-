@@ -17,7 +17,7 @@ import { InvoiceFilterDto } from '../models/invoice-filter.models';
   providedIn: 'root'
 })
 export class InvoiceService {
-  private apiUrl = `${API_CONFIG.baseUrl}/invoices`;
+  private apiUrl = '/api/invoices';
 
   constructor(private http: HttpClient) { }
 

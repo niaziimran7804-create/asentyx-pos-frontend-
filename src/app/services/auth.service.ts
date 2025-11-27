@@ -9,7 +9,7 @@ import { API_CONFIG } from '../config/api.config';
   providedIn: 'root'
 })
 export class AuthService {
-  private apiUrl = `${API_CONFIG.baseUrl}/auth`;
+  private apiUrl = '/api/auth';
   private currentUserSubject = new BehaviorSubject<UserDto | null>(null);
   public currentUser$ = this.currentUserSubject.asObservable();
 
