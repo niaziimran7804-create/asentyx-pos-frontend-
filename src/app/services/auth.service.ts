@@ -3,12 +3,13 @@ import { HttpClient } from '@angular/common/http';
 import { Observable, BehaviorSubject } from 'rxjs';
 import { tap } from 'rxjs/operators';
 import { LoginDto, LoginResponseDto, UserDto } from '../models/auth.models';
+import { API_CONFIG } from '../config/api.config';
 
 @Injectable({
   providedIn: 'root'
 })
 export class AuthService {
-  private apiUrl = '/api/auth';
+  private apiUrl = `${API_CONFIG.baseUrl}/auth`;
   private currentUserSubject = new BehaviorSubject<UserDto | null>(null);
   public currentUser$ = this.currentUserSubject.asObservable();
 
@@ -24,9 +25,14 @@ export class AuthService {
     return this.http.post<LoginResponseDto>(`${this.apiUrl}/login`, loginDto)
       .pipe(
         tap(response => {
+          console.log('Auth service: storing token and user', response);
           localStorage.setItem('token', response.token);
           localStorage.setItem('user', JSON.stringify(response.user));
+          localStorage.setItem('userId', response.user.userId.toString());
+          localStorage.setItem('userName', `${response.user.firstName} ${response.user.lastName}`);
+          localStorage.setItem('userRole', response.user.role);
           this.currentUserSubject.next(response.user);
+          console.log('Auth service: storage complete');
         })
       );
   }

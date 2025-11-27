@@ -1,6 +1,7 @@
 import { Injectable } from '@angular/core';
 import { HttpClient, HttpParams } from '@angular/common/http';
 import { Observable } from 'rxjs';
+import { API_CONFIG } from '../config/api.config';
 import { 
   InvoiceDto, 
   CreateInvoiceDto, 
@@ -16,7 +17,7 @@ import { InvoiceFilterDto } from '../models/invoice-filter.models';
   providedIn: 'root'
 })
 export class InvoiceService {
-  private apiUrl = '/api/invoices';
+  private apiUrl = `${API_CONFIG.baseUrl}/invoices`;
 
   constructor(private http: HttpClient) { }
 

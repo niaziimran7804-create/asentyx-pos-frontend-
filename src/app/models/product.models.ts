@@ -32,7 +32,9 @@ export interface CreateProductDto {
   productColor?: string;
   productWeight: number;
   productUnitStock: number;
+  stockThreshold?: number;
   productImage?: string;
+  productImageBase64?: string;
 }
 
 export interface UpdateProductDto {

@@ -1,6 +1,7 @@
 import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
+import { API_CONFIG } from '../config/api.config';
 import { 
   MainCategoryDto, SecondCategoryDto, ThirdCategoryDto, VendorDto, BrandDto,
   CreateMainCategoryDto, CreateSecondCategoryDto, CreateThirdCategoryDto,
@@ -11,7 +12,7 @@ import {
   providedIn: 'root'
 })
 export class CategoryService {
-  private apiUrl = '/api/categories';
+  private apiUrl = `${API_CONFIG.baseUrl}/categories`;
 
   constructor(private http: HttpClient) { }
 

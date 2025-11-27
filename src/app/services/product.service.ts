@@ -2,12 +2,13 @@ import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { ProductDto, CreateProductDto, UpdateProductDto } from '../models/product.models';
+import { API_CONFIG } from '../config/api.config';
 
 @Injectable({
   providedIn: 'root'
 })
 export class ProductService {
-  private apiUrl = '/api/products';
+  private apiUrl = `${API_CONFIG.baseUrl}/products`;
 
   constructor(private http: HttpClient) { }
 

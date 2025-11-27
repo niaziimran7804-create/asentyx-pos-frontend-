@@ -1,6 +1,7 @@
 import { Injectable } from '@angular/core';
 import { HttpClient, HttpParams } from '@angular/common/http';
 import { Observable } from 'rxjs';
+import { API_CONFIG } from '../config/api.config';
 import { 
   CustomerBalanceDto, 
   AgingReportResponseDto, 
@@ -11,7 +12,7 @@ import {
   providedIn: 'root'
 })
 export class CustomerBalanceService {
-  private apiUrl = '/api';
+  private apiUrl = API_CONFIG.baseUrl;
 
   constructor(private http: HttpClient) {}
 

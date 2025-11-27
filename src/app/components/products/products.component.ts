@@ -47,6 +47,7 @@ export class ProductsComponent implements OnInit {
     productSize: 0,
     productWeight: 0,
     productUnitStock: 0,
+    stockThreshold: 10,
     productImage: undefined
   };
 
@@ -161,6 +162,7 @@ export class ProductsComponent implements OnInit {
     formData.append('productSize', this.productForm.productSize.toString());
     formData.append('productWeight', this.productForm.productWeight.toString());
     formData.append('productUnitStock', this.productForm.productUnitStock.toString());
+    formData.append('stockThreshold', (this.productForm.stockThreshold || 10).toString());
     
     // Append image file if selected
     if (this.selectedImage) {
@@ -211,6 +213,7 @@ export class ProductsComponent implements OnInit {
       productColor: product.productColor,
       productWeight: product.productWeight,
       productUnitStock: product.productUnitStock,
+      stockThreshold: 10,
       productImage: product.productImage
     };
     this.showForm = true;
@@ -312,6 +315,7 @@ export class ProductsComponent implements OnInit {
       productSize: 0,
       productWeight: 0,
       productUnitStock: 0,
+      stockThreshold: 10,
       productImage: undefined
     };
   }

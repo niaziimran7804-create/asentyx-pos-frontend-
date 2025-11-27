@@ -2,12 +2,13 @@ import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { BarCodeDto, CreateBarCodeDto, GenerateBarCodeDto } from '../models/barcode.models';
+import { API_CONFIG } from '../config/api.config';
 
 @Injectable({
   providedIn: 'root'
 })
 export class BarcodeService {
-  private apiUrl = '/api/barcodes';
+  private apiUrl = `${API_CONFIG.baseUrl}/barcodes`;
 
   constructor(private http: HttpClient) { }
 

@@ -1,3 +1,6 @@
+// Centralized API configuration
+const API_TARGET = process.env.API_TARGET || 'https://localhost:7000';
+
 export default async function handler(req, res) {
   // Enable CORS
   res.setHeader('Access-Control-Allow-Credentials', true);
@@ -16,7 +19,9 @@ export default async function handler(req, res) {
   try {
     const { path } = req.query;
     const apiPath = Array.isArray(path) ? path.join('/') : path;
-    const targetUrl = `http://asentyx.com:5000/api/${apiPath}`;
+    const targetUrl = `${API_TARGET}/api/${apiPath}`;
+
+    console.log('Proxying request to:', targetUrl);
 
     const response = await fetch(targetUrl, {
       method: req.method,

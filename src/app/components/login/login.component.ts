@@ -51,18 +51,37 @@ export class LoginComponent implements OnInit {
       this.errorMessage = '';
       
       this.authService.login(this.loginForm.value).subscribe({
-        next: () => {
+        next: (response) => {
           this.isLoading = false;
-          // Navigate to return URL or dashboard
-          this.router.navigate([this.returnUrl]);
+          console.log('Login successful, navigating to:', this.returnUrl);
+          console.log('User:', response.user);
+          console.log('Token stored:', localStorage.getItem('token'));
+          
+          // Small delay to ensure localStorage is updated
+          setTimeout(() => {
+            this.router.navigate([this.returnUrl]).then(
+              (success) => {
+                console.log('Navigation success:', success);
+                if (!success) {
+                  console.error('Navigation failed, redirecting to /dashboard');
+                  this.router.navigate(['/dashboard']);
+                }
+              },
+              (error) => {
+                console.error('Navigation error:', error);
+                this.router.navigate(['/dashboard']);
+              }
+            );
+          }, 100);
         },
         error: (error) => {
           this.isLoading = false;
+          console.error('Login error:', error);
           this.errorMessage = 'Invalid credentials. Please try again.';
           Swal.fire({
             icon: 'error',
             title: 'Login Failed',
-            text: 'Invalid credentials. Please try again.',
+            text: error.error?.message || 'Invalid credentials. Please try again.',
             confirmButtonColor: '#667eea'
           });
         }

@@ -1,6 +1,7 @@
 import { Injectable } from '@angular/core';
 import { HttpClient, HttpParams } from '@angular/common/http';
 import { Observable } from 'rxjs';
+import { API_CONFIG } from '../config/api.config';
 import { 
   PurchaseReturnDto, 
   CreatePurchaseReturnDto, 
@@ -13,7 +14,7 @@ import {
   providedIn: 'root'
 })
 export class ReturnService {
-  private apiUrl = '/api/returns';
+  private apiUrl = `${API_CONFIG.baseUrl}/returns`;
 
   constructor(private http: HttpClient) { }
 

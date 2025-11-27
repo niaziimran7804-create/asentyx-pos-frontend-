@@ -1,13 +1,14 @@
 import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
+import { API_CONFIG } from '../config/api.config';
 import { ExpenseDto, CreateExpenseDto } from '../models/expense.models';
 
 @Injectable({
   providedIn: 'root'
 })
 export class ExpenseService {
-  private apiUrl = '/api/expenses';
+  private apiUrl = `${API_CONFIG.baseUrl}/expenses`;
 
   constructor(private http: HttpClient) { }
 

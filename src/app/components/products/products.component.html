@@ -74,6 +74,10 @@
                   <label class="form-label fw-semibold"><i class="fas fa-boxes me-2"></i>Stock *</label>
                   <input type="number" class="form-control" [(ngModel)]="productForm.productUnitStock" name="stock" placeholder="0" required />
                 </div>
+                <div class="col-md-4">
+                  <label class="form-label fw-semibold"><i class="fas fa-exclamation-triangle me-2"></i>Stock Threshold</label>
+                  <input type="number" class="form-control" [(ngModel)]="productForm.stockThreshold" name="stockThreshold" placeholder="10" />
+                </div>
                 <div class="col-md-12">
                   <label class="form-label fw-semibold"><i class="fas fa-image me-2"></i>Product Image</label>
                   <input type="file" class="form-control" (change)="onImageSelected($event)" accept="image/*" name="productImage" />
