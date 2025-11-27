@@ -459,21 +459,20 @@ export class ProductsComponent implements OnInit {
 
       const product: CreateProductDto = {
         productName: row.ProductName || row['Product Name'] || row.Name || '',
-        BrandId: brand.brandId,
+        brandId: brand.brandId,
         productPerUnitPrice: parseFloat(row.Price || row['Unit Price'] || 0),
         productMSRP: parseFloat(row.MSRP || row['MSRP Price'] || 0),
         productUnitStock: parseInt(row.Stock || row.Quantity || 0),
         productStatus: (row.Status || 'YES').toUpperCase() === 'YES' ? 'YES' : 'NO',
         productQuantityPerUnit: parseInt(row.QuantityPerUnit || 0) || 0,
         productDiscountRate: parseFloat(row.DiscountRate || 0) || 0,
-        productSize: (row.Size || 'Medium').toString(),
-        productWeight: parseFloat(row.Weight || 0) || 0,
+        productColor: parseInt(row.Color || row.ColorId || 0) || 0,
         stockThreshold: parseInt(row.StockThreshold || 10) || 10,
         productImageBase64: null
       };
 
       // Validate required fields
-      if (!product.productName || product.BrandId === 0 || product.productPerUnitPrice <= 0) {
+      if (!product.productName || product.brandId === 0 || product.productPerUnitPrice <= 0) {
         return null;
       }
 
