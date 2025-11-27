@@ -1,5 +1,5 @@
 // Centralized API configuration
-const API_TARGET = process.env.API_TARGET || 'http://asentyx.com:5000';
+const API_TARGET = process.env.API_TARGET || 'http://www.asentyx.com:5000';
 
 export default async function handler(req, res) {
   // Enable CORS
@@ -17,13 +17,21 @@ export default async function handler(req, res) {
   }
 
   try {
-    const { path } = req.query;
+    const { path, ...queryParams } = req.query;
     const apiPath = Array.isArray(path) ? path.join('/') : path;
-    const targetUrl = `${API_TARGET}/api/${apiPath}`;
+    
+    // Build query string from remaining query parameters
+    const queryString = Object.keys(queryParams)
+      .map(key => `${encodeURIComponent(key)}=${encodeURIComponent(queryParams[key])}`)
+      .join('&');
+    
+    const targetUrl = `${API_TARGET}/api/${apiPath}${queryString ? `?${queryString}` : ''}`;
 
     console.log('Proxying request:', {
       method: req.method,
       targetUrl,
+      API_TARGET,
+      queryParams,
       hasBody: !!req.body,
       bodyType: typeof req.body,
       body: req.body
@@ -67,7 +75,18 @@ export default async function handler(req, res) {
       res.send(data);
     }
   } catch (error) {
-    console.error('Proxy error:', error);
-    res.status(500).json({ error: 'Proxy error', message: error.message, stack: error.stack });
+    console.error('Proxy error:', {
+      error: error.message,
+      stack: error.stack,
+      API_TARGET,
+      cause: error.cause
+    });
+    res.status(500).json({ 
+      error: 'Proxy error', 
+      message: error.message, 
+      stack: error.stack,
+      API_TARGET,
+      hint: 'Check if API_TARGET environment variable is set correctly and backend is accessible'
+    });
   }
 }
