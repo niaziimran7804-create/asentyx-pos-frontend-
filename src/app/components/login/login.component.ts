@@ -1,5 +1,5 @@
-import { Component } from '@angular/core';
-import { Router } from '@angular/router';
+import { Component, OnInit } from '@angular/core';
+import { Router, ActivatedRoute } from '@angular/router';
 import { FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { AuthService } from '../../services/auth.service';
 import Swal from 'sweetalert2';
@@ -9,21 +9,40 @@ import Swal from 'sweetalert2';
   templateUrl: './login.component.html',
   styleUrls: ['./login.component.css']
 })
-export class LoginComponent {
+export class LoginComponent implements OnInit {
   loginForm: FormGroup;
   errorMessage: string = '';
   showPassword: boolean = false;
   isLoading: boolean = false;
+  returnUrl: string = '/dashboard';
 
   constructor(
     private fb: FormBuilder,
     private authService: AuthService,
-    private router: Router
+    private router: Router,
+    private route: ActivatedRoute
   ) {
     this.loginForm = this.fb.group({
       userId: ['', Validators.required],
       password: ['', Validators.required]
     });
+  }
+
+  ngOnInit(): void {
+    // Get return URL from route parameters or default to dashboard
+    this.returnUrl = this.route.snapshot.queryParams['returnUrl'] || '/dashboard';
+    
+    // Check if redirected due to session expiration
+    const reason = this.route.snapshot.queryParams['reason'];
+    if (reason === 'session-expired') {
+      Swal.fire({
+        icon: 'warning',
+        title: 'Session Expired',
+        text: 'Your session has expired. Please login again.',
+        confirmButtonColor: '#667eea',
+        timer: 5000
+      });
+    }
   }
 
   onSubmit(): void {
@@ -34,7 +53,8 @@ export class LoginComponent {
       this.authService.login(this.loginForm.value).subscribe({
         next: () => {
           this.isLoading = false;
-          this.router.navigate(['/dashboard']);
+          // Navigate to return URL or dashboard
+          this.router.navigate([this.returnUrl]);
         },
         error: (error) => {
           this.isLoading = false;

@@ -14,6 +14,8 @@ export interface ProductDto {
   productWeight: number;
   productUnitStock: number;
   brandName?: string;
+  productImage?: string;
+  productImageBase64?: string;
 }
 
 export interface CreateProductDto {
@@ -30,6 +32,7 @@ export interface CreateProductDto {
   productColor?: string;
   productWeight: number;
   productUnitStock: number;
+  productImage?: string;
 }
 
 export interface UpdateProductDto {
@@ -45,5 +48,6 @@ export interface UpdateProductDto {
   productColor?: string;
   productWeight: number;
   productUnitStock: number;
+  productImage?: string;
 }
 

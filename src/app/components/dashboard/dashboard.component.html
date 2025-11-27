@@ -16,6 +16,16 @@
       [currentUser]="currentUser"
       [notificationCount]="3">
     </app-navbar>
+    
+    <!-- Loading Overlay -->
+    <div *ngIf="loading" style="position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(255, 255, 255, 0.9); z-index: 9999; display: flex; align-items: center; justify-content: center;">
+      <div class="text-center">
+        <div class="spinner-border text-primary" style="width: 3rem; height: 3rem;" role="status">
+          <span class="visually-hidden">Loading...</span>
+        </div>
+        <p class="mt-3 fw-semibold text-muted">Loading dashboard...</p>
+      </div>
+    </div>
 
     <!-- Page Content -->
     <main style="flex: 1; overflow-y: auto; padding: 2rem; margin-top: 64px;">
@@ -83,6 +93,58 @@
           </div>
         </div>
 
+        <!-- Sales Graph -->
+        <div class="card mb-4" *ngIf="salesChartOptions">
+          <div class="card-body">
+            <h3 class="h5 fw-semibold mb-3">
+              <i class="fas fa-chart-line me-2" style="color: #667eea;"></i>
+              Sales Trend (Last 30 Days)
+            </h3>
+            <apx-chart
+              [series]="salesChartOptions.series!"
+              [chart]="salesChartOptions.chart!"
+              [xaxis]="salesChartOptions.xaxis!"
+              [yaxis]="salesChartOptions.yaxis!"
+              [stroke]="salesChartOptions.stroke!"
+              [dataLabels]="salesChartOptions.dataLabels!"
+              [grid]="salesChartOptions.grid!"
+              [colors]="salesChartOptions.colors!"
+              [legend]="salesChartOptions.legend!"
+              [tooltip]="salesChartOptions.tooltip!">
+            </apx-chart>
+          </div>
+        </div>
+
+        <!-- Recent Sales Summary -->
+        <div class="card mb-4" *ngIf="dailySales && dailySales.length > 0">
+          <div class="card-body">
+            <h3 class="h5 fw-semibold mb-3">
+              <i class="fas fa-calendar-week me-2" style="color: #667eea;"></i>
+              Recent Sales Summary
+            </h3>
+            <div class="table-responsive">
+              <table class="table table-hover">
+                <thead>
+                  <tr>
+                    <th>Date</th>
+                    <th>Sales</th>
+                    <th>Orders</th>
+                    <th>Avg Order</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr *ngFor="let day of dailySales">
+                    <td>{{ day.date | date: 'MMM d, y' }}</td>
+                    <td class="text-success fw-bold">{{ formatCurrency(day.totalSales) }}</td>
+                    <td>{{ day.totalOrders }}</td>
+                    <td>{{ formatCurrency(day.averageOrderValue) }}</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+
         <!-- Quick Actions -->
         <div class="card">
           <div class="card-body">
@@ -107,6 +169,12 @@
                 <button class="btn btn-info w-100 btn-animate" (click)="navigateTo('/categories')">
                   <i class="fas fa-tags me-2"></i>
                   Manage Categories
+                </button>
+              </div>
+              <div class="col-12 col-sm-6 col-md-4">
+                <button class="btn btn-purple w-100 btn-animate" (click)="navigateTo('/accounting')">
+                  <i class="fas fa-calculator me-2"></i>
+                  View Accounting
                 </button>
               </div>
               <div class="col-12 col-sm-6 col-md-4" *ngIf="isAdmin() || isCashier()">

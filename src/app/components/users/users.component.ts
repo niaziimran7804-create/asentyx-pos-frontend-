@@ -27,13 +27,17 @@ export class UsersComponent implements OnInit {
   isSidebarCollapsed = false;
   sidebarWidth = '280px';
   currentUser: any;
+  loading: boolean = false;
   menuItems: any[] = [
     { label: 'Dashboard', icon: 'fas fa-home', route: '/dashboard' },
     { label: 'Products', icon: 'fas fa-box', route: '/products' },
     { label: 'Orders', icon: 'fas fa-shopping-cart', route: '/orders' },
+    { label: 'Returns', icon: 'fas fa-undo', route: '/returns' },
     { label: 'Categories', icon: 'fas fa-th-large', route: '/categories' },
     { label: 'Barcodes', icon: 'fas fa-barcode', route: '/barcodes' },
     { label: 'Invoices', icon: 'fas fa-file-invoice', route: '/invoices' },
+    { label: 'Accounting', icon: 'fas fa-calculator', route: '/accounting' },
+    { label: 'Customer Balance', icon: 'fas fa-users-cog', route: '/customer-balance' },
     { label: 'Expenses', icon: 'fas fa-wallet', route: '/expenses' },
     { label: 'Users', icon: 'fas fa-users', route: '/users' }
   ];
@@ -41,6 +45,7 @@ export class UsersComponent implements OnInit {
   constructor(private userService: UserService) { }
 
   ngOnInit(): void {
+    this.loading = true;
     this.loadUsers();
     this.currentUser = {
       name: localStorage.getItem('userName') || 'User',
@@ -59,8 +64,12 @@ export class UsersComponent implements OnInit {
 
   loadUsers(): void {
     this.userService.getAllUsers().subscribe({
-      next: (data) => this.users = data,
+      next: (data) => {
+        this.users = data;
+        this.loading = false;
+      },
       error: (error) => {
+        this.loading = false;
         Swal.fire({
           icon: 'error',
           title: 'Error Loading Users',

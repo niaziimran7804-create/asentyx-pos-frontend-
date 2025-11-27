@@ -37,13 +37,17 @@ export class CategoriesComponent implements OnInit {
   isSidebarCollapsed = false;
   sidebarWidth = '280px';
   currentUser: any;
+  loading: boolean = false;
   menuItems: any[] = [
     { label: 'Dashboard', icon: 'fas fa-home', route: '/dashboard' },
     { label: 'Products', icon: 'fas fa-box', route: '/products' },
     { label: 'Orders', icon: 'fas fa-shopping-cart', route: '/orders' },
+    { label: 'Returns', icon: 'fas fa-undo', route: '/returns' },
     { label: 'Categories', icon: 'fas fa-th-large', route: '/categories' },
     { label: 'Barcodes', icon: 'fas fa-barcode', route: '/barcodes' },
     { label: 'Invoices', icon: 'fas fa-file-invoice', route: '/invoices' },
+    { label: 'Accounting', icon: 'fas fa-calculator', route: '/accounting' },
+    { label: 'Customer Balance', icon: 'fas fa-users-cog', route: '/customer-balance' },
     { label: 'Expenses', icon: 'fas fa-wallet', route: '/expenses' },
     { label: 'Users', icon: 'fas fa-users', route: '/users' }
   ];
@@ -54,6 +58,7 @@ export class CategoriesComponent implements OnInit {
   ) { }
 
   ngOnInit(): void {
+    this.loading = true;
     this.loadAllCategories();
     this.currentUser = {
       name: localStorage.getItem('userName') || 'User',
@@ -71,25 +76,37 @@ export class CategoriesComponent implements OnInit {
   }
 
   loadAllCategories(): void {
+    let completedCalls = 0;
+    const totalCalls = 5;
+    const checkComplete = () => {
+      completedCalls++;
+      if (completedCalls === totalCalls) this.loading = false;
+    };
+    
     this.categoryService.getMainCategories().subscribe({
       next: (data) => this.mainCategories = data,
-      error: (error) => console.error('Error loading main categories:', error)
+      error: (error) => console.error('Error loading main categories:', error),
+      complete: () => checkComplete()
     });
     this.categoryService.getSecondCategories().subscribe({
       next: (data) => this.secondCategories = data,
-      error: (error) => console.error('Error loading second categories:', error)
+      error: (error) => console.error('Error loading second categories:', error),
+      complete: () => checkComplete()
     });
     this.categoryService.getThirdCategories().subscribe({
       next: (data) => this.thirdCategories = data,
-      error: (error) => console.error('Error loading third categories:', error)
+      error: (error) => console.error('Error loading third categories:', error),
+      complete: () => checkComplete()
     });
     this.categoryService.getVendors().subscribe({
       next: (data) => this.vendors = data,
-      error: (error) => console.error('Error loading vendors:', error)
+      error: (error) => console.error('Error loading vendors:', error),
+      complete: () => checkComplete()
     });
     this.categoryService.getBrands().subscribe({
       next: (data) => this.brands = data,
-      error: (error) => console.error('Error loading brands:', error)
+      error: (error) => console.error('Error loading brands:', error),
+      complete: () => checkComplete()
     });
   }
 

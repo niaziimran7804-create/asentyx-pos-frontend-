@@ -1,7 +1,15 @@
 import { Component, OnInit } from '@angular/core';
 import { InvoiceService } from '../../services/invoice.service';
 import { OrderService } from '../../services/order.service';
-import { InvoiceDto, CreateInvoiceDto, ShopConfigurationDto, UpdateShopConfigurationDto } from '../../models/invoice.models';
+import { 
+  InvoiceDto, 
+  CreateInvoiceDto, 
+  ShopConfigurationDto, 
+  UpdateShopConfigurationDto,
+  PaymentDto,
+  CreatePaymentDto,
+  PaymentSummaryDto
+} from '../../models/invoice.models';
 import { InvoiceFilterDto } from '../../models/invoice-filter.models';
 import { OrderDto } from '../../models/order.models';
 import { AuthService } from '../../services/auth.service';
@@ -47,17 +55,35 @@ export class InvoicesComponent implements OnInit {
   selectedInvoiceIds: Set<number> = new Set();
   showBulkActions: boolean = false;
 
+  // Payment properties
+  showPaymentModal: boolean = false;
+  showPaymentHistoryModal: boolean = false;
+  selectedInvoice: InvoiceDto | null = null;
+  payments: PaymentDto[] = [];
+  paymentSummary: PaymentSummaryDto | null = null;
+  paymentForm: CreatePaymentDto = {
+    amount: 0,
+    paymentMethod: 'Cash',
+    transactionReference: '',
+    notes: '',
+    paymentDate: new Date()
+  };
+
   // Sidebar and Navbar properties
   isSidebarCollapsed = false;
   sidebarWidth = '280px';
   currentUser: any;
+  loading: boolean = false;
   menuItems: any[] = [
     { label: 'Dashboard', icon: 'fas fa-home', route: '/dashboard' },
     { label: 'Products', icon: 'fas fa-box', route: '/products' },
     { label: 'Orders', icon: 'fas fa-shopping-cart', route: '/orders' },
+    { label: 'Returns', icon: 'fas fa-undo', route: '/returns' },
     { label: 'Categories', icon: 'fas fa-th-large', route: '/categories' },
     { label: 'Barcodes', icon: 'fas fa-barcode', route: '/barcodes' },
     { label: 'Invoices', icon: 'fas fa-file-invoice', route: '/invoices' },
+    { label: 'Accounting', icon: 'fas fa-calculator', route: '/accounting' },
+    { label: 'Customer Balance', icon: 'fas fa-users-cog', route: '/customer-balance' },
     { label: 'Expenses', icon: 'fas fa-wallet', route: '/expenses' },
     { label: 'Users', icon: 'fas fa-users', route: '/users' }
   ];
@@ -69,9 +95,11 @@ export class InvoicesComponent implements OnInit {
   ) { }
 
   ngOnInit(): void {
+    this.loading = true;
     this.loadInvoices();
     this.loadOrders();
     this.loadShopConfiguration();
+    this.loadPaymentSummary();
     this.currentUser = {
       name: localStorage.getItem('userName') || 'User',
       role: localStorage.getItem('userRole') || 'cashier'
@@ -88,6 +116,7 @@ export class InvoicesComponent implements OnInit {
   }
 
   loadInvoices(): void {
+    this.loading = true;
     // Check if any filter is active
     const hasActiveFilters = this.filter.minAmount !== undefined || 
                             this.filter.maxAmount !== undefined ||
@@ -100,19 +129,28 @@ export class InvoicesComponent implements OnInit {
       this.applyFilters();
     } else {
       this.invoiceService.getAllInvoices().subscribe({
-        next: (data) => this.invoices = data,
-        error: (error) => console.error('Error loading invoices:', error)
+        next: (data) => {
+          this.invoices = data;
+          this.loading = false;
+        },
+        error: (error) => {
+          console.error('Error loading invoices:', error);
+          this.loading = false;
+        }
       });
     }
   }
 
   applyFilters(): void {
+    this.loading = true;
     this.invoiceService.getFilteredInvoices(this.filter).subscribe({
       next: (data) => {
         this.invoices = data;
         this.showFilters = true;
+        this.loading = false;
       },
       error: (error) => {
+        this.loading = false;
         Swal.fire({
           icon: 'error',
           title: 'Error',
@@ -378,6 +416,189 @@ export class InvoicesComponent implements OnInit {
     setTimeout(() => {
       this.clearSelection();
     }, 500);
+  }
+
+  // Payment Management Methods
+  loadPaymentSummary(): void {
+    this.invoiceService.getPaymentSummary().subscribe({
+      next: (data) => {
+        this.paymentSummary = data;
+      },
+      error: (error) => console.error('Error loading payment summary:', error)
+    });
+  }
+
+  showAddPaymentModal(invoice: InvoiceDto): void {
+    this.selectedInvoice = invoice;
+    this.paymentForm = {
+      amount: invoice.balance || 0,
+      paymentMethod: 'Cash',
+      transactionReference: '',
+      notes: '',
+      paymentDate: new Date()
+    };
+    this.showPaymentModal = true;
+  }
+
+  closePaymentModal(): void {
+    this.showPaymentModal = false;
+    this.selectedInvoice = null;
+    this.resetPaymentForm();
+  }
+
+  resetPaymentForm(): void {
+    this.paymentForm = {
+      amount: 0,
+      paymentMethod: 'Cash',
+      transactionReference: '',
+      notes: '',
+      paymentDate: new Date()
+    };
+  }
+
+  addPayment(): void {
+    if (!this.selectedInvoice) return;
+
+    // Validation
+    if (this.paymentForm.amount <= 0) {
+      Swal.fire({
+        icon: 'warning',
+        title: 'Invalid Amount',
+        text: 'Payment amount must be greater than 0',
+        confirmButtonColor: '#667eea'
+      });
+      return;
+    }
+
+    if (this.paymentForm.amount > this.selectedInvoice.balance) {
+      Swal.fire({
+        icon: 'warning',
+        title: 'Amount Exceeds Balance',
+        text: `Payment amount cannot exceed remaining balance of ${this.formatCurrency(this.selectedInvoice.balance)}`,
+        confirmButtonColor: '#667eea'
+      });
+      return;
+    }
+
+    this.invoiceService.addPayment(this.selectedInvoice.invoiceId, this.paymentForm).subscribe({
+      next: (payment) => {
+        Swal.fire({
+          icon: 'success',
+          title: 'Payment Added!',
+          text: `Payment of ${this.formatCurrency(payment.paymentAmount)} has been recorded`,
+          confirmButtonColor: '#667eea',
+          timer: 2000
+        });
+        this.loadInvoices();
+        this.loadPaymentSummary();
+        this.closePaymentModal();
+      },
+      error: (error) => {
+        Swal.fire({
+          icon: 'error',
+          title: 'Error',
+          text: error.error?.message || 'Failed to add payment. Please try again.',
+          confirmButtonColor: '#667eea'
+        });
+      }
+    });
+  }
+
+  viewPaymentHistory(invoice: InvoiceDto): void {
+    this.selectedInvoice = invoice;
+    this.loadPaymentHistory(invoice.invoiceId);
+  }
+
+  loadPaymentHistory(invoiceId: number): void {
+    this.invoiceService.getInvoicePayments(invoiceId).subscribe({
+      next: (data) => {
+        this.payments = data;
+        this.showPaymentHistoryModal = true;
+      },
+      error: (error) => {
+        Swal.fire({
+          icon: 'error',
+          title: 'Error',
+          text: 'Failed to load payment history',
+          confirmButtonColor: '#667eea'
+        });
+      }
+    });
+  }
+
+  closePaymentHistoryModal(): void {
+    this.showPaymentHistoryModal = false;
+    this.selectedInvoice = null;
+    this.payments = [];
+  }
+
+  deletePayment(paymentId: number): void {
+    Swal.fire({
+      title: 'Delete Payment?',
+      text: 'This action cannot be undone',
+      icon: 'warning',
+      showCancelButton: true,
+      confirmButtonColor: '#d33',
+      cancelButtonColor: '#667eea',
+      confirmButtonText: 'Yes, delete it!'
+    }).then((result) => {
+      if (result.isConfirmed) {
+        this.invoiceService.deletePayment(paymentId).subscribe({
+          next: () => {
+            Swal.fire({
+              icon: 'success',
+              title: 'Deleted!',
+              text: 'Payment has been deleted',
+              confirmButtonColor: '#667eea',
+              timer: 2000
+            });
+            if (this.selectedInvoice) {
+              this.loadPaymentHistory(this.selectedInvoice.invoiceId);
+            }
+            this.loadInvoices();
+            this.loadPaymentSummary();
+          },
+          error: (error) => {
+            Swal.fire({
+              icon: 'error',
+              title: 'Error',
+              text: 'Failed to delete payment',
+              confirmButtonColor: '#667eea'
+            });
+          }
+        });
+      }
+    });
+  }
+
+  getStatusBadgeClass(status: string): string {
+    switch (status?.toLowerCase()) {
+      case 'paid':
+      case 'fully paid':
+        return 'bg-success';
+      case 'partially paid':
+        return 'bg-warning';
+      case 'unpaid':
+      case 'pending':
+        return 'bg-danger';
+      case 'overdue':
+        return 'bg-dark';
+      default:
+        return 'bg-secondary';
+    }
+  }
+
+  getPaymentProgress(invoice: InvoiceDto): number {
+    if (!invoice.totalAmount || invoice.totalAmount === 0) return 0;
+    return (invoice.amountPaid / invoice.totalAmount) * 100;
+  }
+
+  formatCurrency(amount: number): string {
+    return new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(amount || 0);
+  }
+
+  isOverdue(dueDate: Date): boolean {
+    return new Date(dueDate) < new Date();
   }
 }
 

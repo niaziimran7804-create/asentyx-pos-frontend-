@@ -8,7 +8,7 @@ import { LoginDto, LoginResponseDto, UserDto } from '../models/auth.models';
   providedIn: 'root'
 })
 export class AuthService {
-  private apiUrl = 'https://localhost:7000/api/auth';
+  private apiUrl = 'http://asentyx.com:5000/api/auth';
   private currentUserSubject = new BehaviorSubject<UserDto | null>(null);
   public currentUser$ = this.currentUserSubject.asObservable();
 
@@ -46,7 +46,42 @@ export class AuthService {
   }
 
   isAuthenticated(): boolean {
-    return !!this.getToken();
+    const token = this.getToken();
+    if (!token) {
+      return false;
+    }
+    
+    // Check if token is expired
+    if (this.isTokenExpired(token)) {
+      this.logout();
+      return false;
+    }
+    
+    return true;
+  }
+
+  isTokenExpired(token: string): boolean {
+    if (!token) {
+      return true;
+    }
+    
+    try {
+      const payload = JSON.parse(atob(token.split('.')[1]));
+      const expiry = payload.exp;
+      
+      if (!expiry) {
+        // If no expiry is set, consider token as valid
+        return false;
+      }
+      
+      // Check if token is expired (exp is in seconds, Date.now() is in milliseconds)
+      return (expiry * 1000) < Date.now();
+    } catch (error) {
+      // If we can't decode the token, don't consider it expired
+      // Let the server validate it
+      console.warn('Unable to decode token:', error);
+      return false;
+    }
   }
 
   isAdmin(): boolean {

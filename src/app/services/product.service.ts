@@ -7,7 +7,7 @@ import { ProductDto, CreateProductDto, UpdateProductDto } from '../models/produc
   providedIn: 'root'
 })
 export class ProductService {
-  private apiUrl = 'https://localhost:7000/api/products';
+  private apiUrl = 'http://asentyx.com:5000/api/products';
 
   constructor(private http: HttpClient) { }
 
@@ -20,11 +20,11 @@ export class ProductService {
     return this.http.get<ProductDto>(`${this.apiUrl}/${id}`);
   }
 
-  createProduct(product: CreateProductDto): Observable<ProductDto> {
+  createProduct(product: CreateProductDto | FormData): Observable<ProductDto> {
     return this.http.post<ProductDto>(this.apiUrl, product);
   }
 
-  updateProduct(id: number, product: UpdateProductDto): Observable<void> {
+  updateProduct(id: number, product: UpdateProductDto | FormData): Observable<void> {
     return this.http.put<void>(`${this.apiUrl}/${id}`, product);
   }
 

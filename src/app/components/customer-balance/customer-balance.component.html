@@ -1,0 +1,201 @@
+<div style="display: flex; min-height: 100vh; background: #f8f9fa;">
+  <app-sidebar 
+    [menuItems]="menuItems" 
+    [role]="getUserRole()"
+    [isCollapsed]="isSidebarCollapsed"
+    (collapseChange)="onSidebarCollapse($event)">
+  </app-sidebar>
+
+  <div style="flex: 1; display: flex; flex-direction: column; transition: margin-left 0.3s ease;" 
+       [ngStyle]="{'margin-left': sidebarWidth}">
+    <app-navbar 
+      [sidebarWidth]="sidebarWidth"
+      [currentUser]="currentUser"
+      [notificationCount]="3">
+    </app-navbar>
+    
+    <!-- Loading Overlay -->
+    <div *ngIf="loading" style="position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(255, 255, 255, 0.9); z-index: 9999; display: flex; align-items: center; justify-content: center;">
+      <div class="text-center">
+        <div class="spinner-border text-primary" style="width: 3rem; height: 3rem;" role="status">
+          <span class="visually-hidden">Loading...</span>
+        </div>
+        <p class="mt-3 fw-semibold text-muted">Loading customer balances...</p>
+      </div>
+    </div>
+    
+    <main style="flex: 1; overflow-y: auto; padding: 2rem; margin-top: 64px;">
+      <div class="container-fluid">
+        <!-- Header -->
+        <div class="mb-4">
+          <div class="d-flex justify-content-between align-items-center mb-3">
+            <div>
+              <h1 class="display-6 fw-bold mb-0">Customer Account Balance</h1>
+              <p class="text-muted mb-0">Aging Report as of {{ formatDate(reportDate) }}</p>
+            </div>
+            <div class="d-flex gap-2">
+              <button class="btn btn-outline-primary" (click)="printReport()">
+                <i class="fas fa-print me-2"></i>Print
+              </button>
+              <button class="btn btn-outline-success" (click)="exportToExcel()" title="Export to CSV">
+                <i class="fas fa-file-csv me-2"></i>Export CSV
+              </button>
+              <button class="btn btn-success" (click)="exportToExcelFormat()" title="Export to Excel">
+                <i class="fas fa-file-excel me-2"></i>Export Excel
+              </button>
+            </div>
+          </div>
+
+          <!-- Search -->
+          <div class="card shadow-sm mb-3">
+            <div class="card-body">
+              <div class="row align-items-center g-3">
+                <div class="col-md-4">
+                  <div class="input-group">
+                    <span class="input-group-text"><i class="fas fa-search"></i></span>
+                    <input 
+                      type="text" 
+                      class="form-control" 
+                      [(ngModel)]="searchTerm" 
+                      (ngModelChange)="searchCustomers()"
+                      placeholder="Search by customer name...">
+                  </div>
+                </div>
+                <div class="col-md-4">
+                  <div class="input-group">
+                    <span class="input-group-text"><i class="fas fa-map-marker-alt"></i></span>
+                    <input 
+                      type="text" 
+                      class="form-control" 
+                      [(ngModel)]="areaSearchTerm" 
+                      (ngModelChange)="searchCustomers()"
+                      placeholder="Search by area...">
+                  </div>
+                </div>
+                <div class="col-md-4 text-end">
+                  <span class="text-muted">Page {{ currentPage }} of {{ totalPages }} | Total Customers: {{ filteredBalances.length }}</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Summary Cards -->
+        <div class="row g-3 mb-4">
+          <div class="col-md-3">
+            <div class="summary-card">
+              <div class="summary-label">To 30 Days</div>
+              <div class="summary-value">{{ formatCurrency(totalDays0To30) }}</div>
+            </div>
+          </div>
+          <div class="col-md-3">
+            <div class="summary-card">
+              <div class="summary-label">31 to 60 Days</div>
+              <div class="summary-value">{{ formatCurrency(totalDays31To60) }}</div>
+            </div>
+          </div>
+          <div class="col-md-3">
+            <div class="summary-card">
+              <div class="summary-label">61 to 90 Days</div>
+              <div class="summary-value">{{ formatCurrency(totalDays61To90) }}</div>
+            </div>
+          </div>
+          <div class="col-md-3">
+            <div class="summary-card total">
+              <div class="summary-label">91+ Days</div>
+              <div class="summary-value">{{ formatCurrency(totalDays91Plus) }}</div>
+            </div>
+          </div>
+          <div class="col-md-12">
+            <div class="summary-card total" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);">
+              <div class="summary-label" style="color: white;">Total Outstanding Balance</div>
+              <div class="summary-value" style="color: white; font-size: 2.5rem;">{{ formatCurrency(grandTotal) }}</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Table -->
+        <div class="card shadow-sm">
+          <div class="table-responsive">
+            <table class="table table-hover mb-0 aging-table">
+              <thead class="table-light">
+                <tr>
+                  <th class="text-center" style="width: 60px;">#</th>
+                  <th style="width: 25%;">Customer Name</th>
+                  <th style="width: 15%;">Area</th>
+                  <th class="text-end">To 30 Days</th>
+                  <th class="text-end">31 to 60 Days</th>
+                  <th class="text-end">61 to 90 Days</th>
+                  <th class="text-end">91+ Days</th>
+                  <th class="text-end bg-light"><strong>Total Outstanding</strong></th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr *ngFor="let customer of paginatedBalances; let i = index">
+                  <td class="text-center text-muted">{{ (currentPage - 1) * itemsPerPage + i + 1 }}</td>
+                  <td class="fw-medium">{{ customer.customerName }}</td>
+                  <td>{{ customer.customerAddress || '-' }}</td>
+                  <td class="text-end">{{ formatCurrency(customer.days0To30) }}</td>
+                  <td class="text-end">{{ formatCurrency(customer.days31To60) }}</td>
+                  <td class="text-end">{{ formatCurrency(customer.days61To90) }}</td>
+                  <td class="text-end">{{ formatCurrency(customer.days91Plus) }}</td>
+                  <td class="text-end bg-light fw-bold">{{ formatCurrency(customer.totalOutstanding) }}</td>
+                </tr>
+                
+                <!-- Empty state -->
+                <tr *ngIf="paginatedBalances.length === 0">
+                  <td colspan="8" class="text-center py-5">
+                    <i class="fas fa-users fa-3x text-muted opacity-50 mb-3 d-block"></i>
+                    <p class="text-muted mb-0">No customer balances found</p>
+                  </td>
+                </tr>
+              </tbody>
+              
+              <!-- Totals Footer -->
+              <tfoot class="table-secondary fw-bold">
+                <tr>
+                  <td colspan="3" class="text-end">TOTALS:</td>
+                  <td class="text-end">{{ formatCurrency(totalDays0To30) }}</td>
+                  <td class="text-end">{{ formatCurrency(totalDays31To60) }}</td>
+                  <td class="text-end">{{ formatCurrency(totalDays61To90) }}</td>
+                  <td class="text-end">{{ formatCurrency(totalDays91Plus) }}</td>
+                  <td class="text-end bg-warning">{{ formatCurrency(grandTotal) }}</td>
+                </tr>
+              </tfoot>
+            </table>
+          </div>
+        </div>
+
+        <!-- Pagination -->
+        <div class="d-flex justify-content-center mt-4" *ngIf="totalPages > 1">
+          <nav>
+            <ul class="pagination">
+              <li class="page-item" [class.disabled]="currentPage === 1">
+                <a class="page-link" (click)="changePage(currentPage - 1)">
+                  <i class="fas fa-chevron-left"></i>
+                </a>
+              </li>
+              
+              <li class="page-item" *ngFor="let page of [].constructor(totalPages); let i = index" 
+                  [class.active]="currentPage === i + 1">
+                <a class="page-link" (click)="changePage(i + 1)">{{ i + 1 }}</a>
+              </li>
+              
+              <li class="page-item" [class.disabled]="currentPage === totalPages">
+                <a class="page-link" (click)="changePage(currentPage + 1)">
+                  <i class="fas fa-chevron-right"></i>
+                </a>
+              </li>
+            </ul>
+          </nav>
+        </div>
+
+        <!-- Footer Note -->
+        <div class="alert alert-info mt-4">
+          <i class="fas fa-info-circle me-2"></i>
+          Please note that this report does not reflect unposted payments or credits.
+        </div>
+      </div>
+    </main>
+  </div>
+</div>

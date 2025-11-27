@@ -7,13 +7,47 @@ export interface InvoiceDto {
   invoiceDate: Date;
   dueDate: Date;
   status: string;
+  totalAmount: number;
+  amountPaid: number;
+  balance: number;
   order: OrderDto;
   shopConfig: ShopConfigurationDto;
+  payments?: PaymentDto[];
 }
 
 export interface CreateInvoiceDto {
   orderId: number;
   dueDate?: Date;
+}
+
+export interface PaymentDto {
+  paymentId: number;
+  invoiceId: number;
+  paymentAmount: number;
+  paymentDate: Date;
+  paymentMethod: string; // "Cash", "Card", "Online", "Check"
+  referenceNumber?: string;
+  notes?: string;
+  createdBy?: string;
+  createdAt: Date;
+}
+
+export interface CreatePaymentDto {
+  amount: number;
+  paymentMethod: string;
+  notes?: string;
+  paymentDate?: Date;
+  transactionReference?: string;
+}
+
+export interface PaymentSummaryDto {
+  totalInvoices: number;
+  fullyPaidInvoices: number;
+  partiallyPaidInvoices: number;
+  unpaidInvoices: number;
+  overdueInvoices: number;
+  totalOutstanding: number;
+  totalCollected: number;
 }
 
 export interface InvoiceItemDto {
