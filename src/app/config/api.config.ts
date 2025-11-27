@@ -1,4 +1,4 @@
 export const API_CONFIG = {
-  baseUrl: 'http://www.asentyx.com:5000/api/',
-  proxyTarget: 'https://www.asentyx.com:5000/api/'
+  baseUrl: '/api',  // Use relative path to proxy through Vercel
+  proxyTarget: 'http://www.asentyx.com:5000'
 };
