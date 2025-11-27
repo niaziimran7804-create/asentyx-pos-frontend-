@@ -11,7 +11,7 @@ import {
   providedIn: 'root'
 })
 export class CategoryService {
-  private apiUrl = 'http://asentyx.com:5000/api/categories';
+  private apiUrl = '/api/categories';
 
   constructor(private http: HttpClient) { }
 

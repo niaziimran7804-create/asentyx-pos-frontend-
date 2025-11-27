@@ -13,7 +13,7 @@ import {
   providedIn: 'root'
 })
 export class ReturnService {
-  private apiUrl = 'http://asentyx.com:5000/api/returns';
+  private apiUrl = '/api/returns';
 
   constructor(private http: HttpClient) { }
 

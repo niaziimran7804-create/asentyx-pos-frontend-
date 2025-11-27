@@ -8,7 +8,7 @@ import { LoginDto, LoginResponseDto, UserDto } from '../models/auth.models';
   providedIn: 'root'
 })
 export class AuthService {
-  private apiUrl = 'http://asentyx.com:5000/api/auth';
+  private apiUrl = '/api/auth';
   private currentUserSubject = new BehaviorSubject<UserDto | null>(null);
   public currentUser$ = this.currentUserSubject.asObservable();
 
