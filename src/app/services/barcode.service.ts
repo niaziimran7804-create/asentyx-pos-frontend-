@@ -7,7 +7,7 @@ import { BarCodeDto, CreateBarCodeDto, GenerateBarCodeDto } from '../models/barc
   providedIn: 'root'
 })
 export class BarcodeService {
-  private apiUrl = 'https://asentyx.com:5000/api/barcodes';
+  private apiUrl = 'http://asentyx.com:5000/api/barcodes';
 
   constructor(private http: HttpClient) { }
 

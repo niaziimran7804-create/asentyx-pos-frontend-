@@ -11,7 +11,7 @@ import {
   providedIn: 'root'
 })
 export class CustomerBalanceService {
-  private apiUrl = 'https://asentyx.com:5000/api';
+  private apiUrl = 'http://asentyx.com:5000/api';
 
   constructor(private http: HttpClient) {}
 
