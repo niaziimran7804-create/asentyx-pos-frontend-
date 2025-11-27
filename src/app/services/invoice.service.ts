@@ -16,7 +16,7 @@ import { InvoiceFilterDto } from '../models/invoice-filter.models';
   providedIn: 'root'
 })
 export class InvoiceService {
-  private apiUrl = 'https://localhost:7000/api/invoices';
+  private apiUrl = 'http://asentyx.com:5000/api/invoices';
 
   constructor(private http: HttpClient) { }
 

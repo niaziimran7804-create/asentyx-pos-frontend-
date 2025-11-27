@@ -7,7 +7,7 @@ import { UserDto, CreateUserDto, UpdateUserDto } from '../models/user.models';
   providedIn: 'root'
 })
 export class UserService {
-  private apiUrl = 'https://localhost:7000/api/users';
+  private apiUrl = 'http://asentyx.com:5000/api/users';
 
   constructor(private http: HttpClient) { }
 

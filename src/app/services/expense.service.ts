@@ -7,7 +7,7 @@ import { ExpenseDto, CreateExpenseDto } from '../models/expense.models';
   providedIn: 'root'
 })
 export class ExpenseService {
-  private apiUrl = 'https://localhost:7000/api/expenses';
+  private apiUrl = 'http://asentyx.com:5000/api/expenses';
 
   constructor(private http: HttpClient) { }
 
