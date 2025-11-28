@@ -32,6 +32,7 @@ export class MenuService {
     if (isAdmin) {
       baseMenuItems.push({ label: 'Expenses', icon: 'fas fa-money-bill-wave', route: '/expenses' });
       baseMenuItems.push({ label: 'Users', icon: 'fas fa-users', route: '/users' });
+      baseMenuItems.push({ label: 'Branches', icon: 'fas fa-building', route: '/branches' });
     }
 
     return baseMenuItems;

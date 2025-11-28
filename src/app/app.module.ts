@@ -18,6 +18,9 @@ import { InvoicesComponent } from './components/invoices/invoices.component';
 import { AccountingComponent } from './components/accounting/accounting.component';
 import { ReturnsComponent } from './components/returns/returns.component';
 import { CustomerBalanceComponent } from './components/customer-balance/customer-balance.component';
+import { CompanyRegistrationComponent } from './components/company-registration/company-registration.component';
+import { BranchesComponent } from './components/branches/branches.component';
+import { BranchFormComponent } from './components/branch-form/branch-form.component';
 import { AuthInterceptor } from './interceptors/auth.interceptor';
 import { AuthGuard } from './guards/auth.guard';
 import { SidebarComponent } from './shared/components/sidebar/sidebar.component';
@@ -38,7 +41,10 @@ import { PageLayoutComponent } from './shared/components/layout/page-layout.comp
     InvoicesComponent,
     AccountingComponent,
     ReturnsComponent,
-    CustomerBalanceComponent
+    CustomerBalanceComponent,
+    CompanyRegistrationComponent,
+    BranchesComponent,
+    BranchFormComponent
   ],
   imports: [
     BrowserModule,

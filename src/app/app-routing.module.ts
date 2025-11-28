@@ -12,10 +12,14 @@ import { InvoicesComponent } from './components/invoices/invoices.component';
 import { AccountingComponent } from './components/accounting/accounting.component';
 import { ReturnsComponent } from './components/returns/returns.component';
 import { CustomerBalanceComponent } from './components/customer-balance/customer-balance.component';
+import { CompanyRegistrationComponent } from './components/company-registration/company-registration.component';
+import { BranchesComponent } from './components/branches/branches.component';
+import { BranchFormComponent } from './components/branch-form/branch-form.component';
 import { AuthGuard } from './guards/auth.guard';
 
 const routes: Routes = [
   { path: 'login', component: LoginComponent },
+  { path: 'signup', component: CompanyRegistrationComponent },
   { path: 'dashboard', component: DashboardComponent, canActivate: [AuthGuard] },
   { path: 'products', component: ProductsComponent, canActivate: [AuthGuard] },
   { path: 'orders', component: OrdersComponent, canActivate: [AuthGuard] },
@@ -27,6 +31,10 @@ const routes: Routes = [
   { path: 'accounting', component: AccountingComponent, canActivate: [AuthGuard] },
   { path: 'returns', component: ReturnsComponent, canActivate: [AuthGuard] },
   { path: 'customer-balance', component: CustomerBalanceComponent, canActivate: [AuthGuard] },
+  { path: 'branches', component: BranchesComponent, canActivate: [AuthGuard] },
+  { path: 'branches/new', component: BranchFormComponent, canActivate: [AuthGuard] },
+  { path: 'branches/edit/:id', component: BranchFormComponent, canActivate: [AuthGuard] },
+  { path: 'branches/view/:id', component: BranchFormComponent, canActivate: [AuthGuard] },
   { path: '', redirectTo: '/login', pathMatch: 'full' },
   { path: '**', redirectTo: '/login' }
 ];
