@@ -1,5 +1,4 @@
-import { environment } from '../../environments/environment';
-
 export const API_CONFIG = {
-  baseUrl: environment.apiBaseUrl
+  baseUrl: '/api',  // Use relative path to proxy through Vercel
+  proxyTarget: 'http://www.asentyx.com:5000'
 };

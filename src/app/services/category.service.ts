@@ -12,7 +12,7 @@ import {
   providedIn: 'root'
 })
 export class CategoryService {
-  private apiUrl = `${API_CONFIG.baseUrl}/categories`;
+  private apiUrl = '/api/categories';
 
   constructor(private http: HttpClient) { }
 

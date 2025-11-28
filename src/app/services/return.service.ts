@@ -14,7 +14,7 @@ import {
   providedIn: 'root'
 })
 export class ReturnService {
-  private apiUrl = `${API_CONFIG.baseUrl}/returns`;
+  private apiUrl = '/api/returns';
 
   constructor(private http: HttpClient) { }
 
