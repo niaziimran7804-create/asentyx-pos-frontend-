@@ -58,9 +58,11 @@ export class InvoicesComponent implements OnInit {
   // Payment properties
   showPaymentModal: boolean = false;
   showPaymentHistoryModal: boolean = false;
+  showDueDateModal: boolean = false;
   selectedInvoice: InvoiceDto | null = null;
   payments: PaymentDto[] = [];
   paymentSummary: PaymentSummaryDto | null = null;
+  newDueDate: Date = new Date();
   paymentForm: CreatePaymentDto = {
     amount: 0,
     paymentMethod: 'Cash',
@@ -530,6 +532,49 @@ export class InvoicesComponent implements OnInit {
     this.showPaymentHistoryModal = false;
     this.selectedInvoice = null;
     this.payments = [];
+  }
+
+  // Due Date Management
+  openDueDateModal(invoice: InvoiceDto): void {
+    this.selectedInvoice = invoice;
+    this.newDueDate = new Date(invoice.dueDate);
+    this.showDueDateModal = true;
+  }
+
+  closeDueDateModal(): void {
+    this.showDueDateModal = false;
+    this.selectedInvoice = null;
+    this.newDueDate = new Date();
+  }
+
+  updateDueDate(): void {
+    if (!this.selectedInvoice) return;
+
+    const updateDto = {
+      dueDate: this.newDueDate
+    };
+
+    this.invoiceService.updateInvoiceDueDate(this.selectedInvoice.invoiceId, updateDto).subscribe({
+      next: (updatedInvoice) => {
+        Swal.fire({
+          icon: 'success',
+          title: 'Due Date Updated!',
+          text: `Due date has been updated to ${this.formatDate(updatedInvoice.dueDate)}`,
+          confirmButtonColor: '#667eea',
+          timer: 2000
+        });
+        this.loadInvoices();
+        this.closeDueDateModal();
+      },
+      error: (error) => {
+        Swal.fire({
+          icon: 'error',
+          title: 'Error',
+          text: error.error?.message || 'Failed to update due date. Please try again.',
+          confirmButtonColor: '#667eea'
+        });
+      }
+    });
   }
 
   deletePayment(paymentId: number): void {

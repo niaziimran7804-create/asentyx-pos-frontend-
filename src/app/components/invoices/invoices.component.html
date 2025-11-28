@@ -348,6 +348,11 @@
                                 title="Download">
                           <i class="fas fa-download"></i>
                         </button>
+                        <button class="btn btn-sm btn-warning" 
+                                (click)="openDueDateModal(invoice)" 
+                                title="Update Due Date">
+                          <i class="fas fa-calendar-edit"></i>
+                        </button>
                         <button class="btn btn-sm btn-success" 
                                 (click)="showAddPaymentModal(invoice)" 
                                 *ngIf="invoice.balance === undefined || invoice.balance > 0"
@@ -529,6 +534,59 @@
           </div>
           <div class="modal-footer">
             <button type="button" class="btn btn-secondary" (click)="closePaymentHistoryModal()">Close</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Update Due Date Modal -->
+    <div class="modal fade show" *ngIf="showDueDateModal" style="display: block; background: rgba(0,0,0,0.5);">
+      <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+          <div class="modal-header bg-gradient text-white" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);">
+            <h5 class="modal-title">
+              <i class="fas fa-calendar me-2"></i>
+              Update Due Date - Invoice #{{ selectedInvoice?.invoiceNumber }}
+            </h5>
+            <button type="button" class="btn-close btn-close-white" (click)="closeDueDateModal()"></button>
+          </div>
+          <div class="modal-body">
+            <div class="alert alert-info">
+              <i class="fas fa-info-circle me-2"></i>
+              Current Due Date: <strong>{{ selectedInvoice?.dueDate ? formatDate(selectedInvoice!.dueDate) : 'N/A' }}</strong>
+            </div>
+
+            <div class="mb-3">
+              <label for="newDueDate" class="form-label fw-semibold">
+                <i class="fas fa-calendar-alt me-2"></i>New Due Date
+              </label>
+              <input
+                type="date"
+                class="form-control"
+                id="newDueDate"
+                [(ngModel)]="newDueDate"
+                required>
+            </div>
+
+            <div class="alert alert-warning" *ngIf="selectedInvoice">
+              <i class="fas fa-exclamation-triangle me-2"></i>
+              <strong>Invoice Details:</strong><br>
+              Total Amount: {{ formatCurrency(selectedInvoice.totalAmount) }}<br>
+              Balance: {{ formatCurrency(selectedInvoice.balance) }}<br>
+              Status: <span class="badge" [ngClass]="{
+                'bg-success': selectedInvoice.status === 'Paid',
+                'bg-warning': selectedInvoice.status === 'Partially Paid',
+                'bg-danger': selectedInvoice.status === 'Unpaid'
+              }">{{ selectedInvoice.status }}</span>
+            </div>
+          </div>
+          <div class="modal-footer">
+            <button type="button" class="btn btn-secondary" (click)="closeDueDateModal()">
+              <i class="fas fa-times me-2"></i>Cancel
+            </button>
+            <button type="button" class="btn btn-primary" (click)="updateDueDate()">
+              <i class="fas fa-save me-2"></i>Update Due Date
+            </button>
           </div>
         </div>
       </div>

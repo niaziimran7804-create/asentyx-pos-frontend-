@@ -20,6 +20,10 @@ export interface CreateInvoiceDto {
   dueDate?: Date;
 }
 
+export interface UpdateInvoiceDueDateDto {
+  dueDate: Date;
+}
+
 export interface PaymentDto {
   paymentId: number;
   invoiceId: number;

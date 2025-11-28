@@ -9,7 +9,8 @@ import {
   UpdateShopConfigurationDto,
   PaymentDto,
   CreatePaymentDto,
-  PaymentSummaryDto
+  PaymentSummaryDto,
+  UpdateInvoiceDueDateDto
 } from '../models/invoice.models';
 import { InvoiceFilterDto } from '../models/invoice-filter.models';
 
@@ -17,7 +18,7 @@ import { InvoiceFilterDto } from '../models/invoice-filter.models';
   providedIn: 'root'
 })
 export class InvoiceService {
-  private apiUrl = '/api/invoices';
+  private apiUrl = `${API_CONFIG.baseUrl}/invoices`;
 
   constructor(private http: HttpClient) { }
 
@@ -70,6 +71,10 @@ export class InvoiceService {
 
   createInvoice(dto: CreateInvoiceDto): Observable<InvoiceDto> {
     return this.http.post<InvoiceDto>(this.apiUrl, dto);
+  }
+
+  updateInvoiceDueDate(invoiceId: number, dto: UpdateInvoiceDueDateDto): Observable<InvoiceDto> {
+    return this.http.put<InvoiceDto>(`${this.apiUrl}/${invoiceId}/due-date`, dto);
   }
 
   printInvoice(id: number): Observable<Blob> {
