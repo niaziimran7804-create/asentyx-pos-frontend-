@@ -2,6 +2,7 @@ import { Component, Input, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Router } from '@angular/router';
 import { AuthService } from '../../../services/auth.service';
+import { MenuService } from '../../services/menu.service';
 import { SidebarComponent, MenuItem } from '../sidebar/sidebar.component';
 import { NavbarComponent } from '../navbar/navbar.component';
 
@@ -40,32 +41,14 @@ export class PageLayoutComponent implements OnInit {
 
   constructor(
     private authService: AuthService,
+    private menuService: MenuService,
     private router: Router
   ) {
     this.currentUser = this.authService.getCurrentUser();
   }
 
   ngOnInit(): void {
-    this.setupMenuItems();
-  }
-
-  setupMenuItems(): void {
-    this.menuItems = [
-      { label: 'Dashboard', icon: 'fas fa-chart-line', route: '/dashboard' },
-      { label: 'Products', icon: 'fas fa-box', route: '/products' },
-      { label: 'Orders', icon: 'fas fa-shopping-cart', route: '/orders' },
-      { label: 'Categories', icon: 'fas fa-tags', route: '/categories' },
-      { label: 'Invoices', icon: 'fas fa-file-invoice', route: '/invoices' }
-    ];
-
-    if (this.isAdmin() || this.isCashier()) {
-      this.menuItems.push({ label: 'Barcodes', icon: 'fas fa-barcode', route: '/barcodes' });
-    }
-
-    if (this.isAdmin()) {
-      this.menuItems.push({ label: 'Expenses', icon: 'fas fa-money-bill-wave', route: '/expenses' });
-      this.menuItems.push({ label: 'Users', icon: 'fas fa-users', route: '/users' });
-    }
+    this.menuItems = this.menuService.getMenuItems();
   }
 
   get sidebarWidth(): string {

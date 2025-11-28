@@ -22,6 +22,7 @@ import { AuthInterceptor } from './interceptors/auth.interceptor';
 import { AuthGuard } from './guards/auth.guard';
 import { SidebarComponent } from './shared/components/sidebar/sidebar.component';
 import { NavbarComponent } from './shared/components/navbar/navbar.component';
+import { PageLayoutComponent } from './shared/components/layout/page-layout.component';
 
 @NgModule({
   declarations: [
@@ -48,7 +49,8 @@ import { NavbarComponent } from './shared/components/navbar/navbar.component';
     NgApexchartsModule,
     AppRoutingModule,
     SidebarComponent,
-    NavbarComponent
+    NavbarComponent,
+    PageLayoutComponent
   ],
   providers: [
     {
