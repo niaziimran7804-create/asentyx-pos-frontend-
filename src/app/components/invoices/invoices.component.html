@@ -320,7 +320,7 @@
                     </td>
                     <td class="fw-bold">{{ formatCurrency(invoice.totalAmount || invoice.order.totalAmount) }}</td>
                     <td class="text-success fw-bold">{{ formatCurrency(invoice.amountPaid || 0) }}</td>
-                    <td class="text-danger fw-bold">{{ formatCurrency(invoice.balance || (invoice.totalAmount || invoice.order.totalAmount)) }}</td>
+                    <td class="text-danger fw-bold">{{ formatCurrency(invoice.balance ) || 0}}</td>
                     <td>
                       <div>
                         <span class="badge" 
