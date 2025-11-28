@@ -14,12 +14,25 @@ export class AuthInterceptor implements HttpInterceptor {
 
   intercept(request: HttpRequest<any>, next: HttpHandler): Observable<HttpEvent<any>> {
     const token = this.authService.getToken();
+    const currentUser = this.authService.getCurrentUser();
     
     if (token) {
+      const headers: { [key: string]: string } = {
+        Authorization: `Bearer ${token}`
+      };
+
+      // Add Company ID header if available
+      if (currentUser?.companyId) {
+        headers['X-Company-Id'] = currentUser.companyId.toString();
+      }
+
+      // Add Branch ID header if available
+      if (currentUser?.branchId) {
+        headers['X-Branch-Id'] = currentUser.branchId.toString();
+      }
+
       request = request.clone({
-        setHeaders: {
-          Authorization: `Bearer ${token}`
-        }
+        setHeaders: headers
       });
     }
 
@@ -31,6 +44,9 @@ export class AuthInterceptor implements HttpInterceptor {
           this.router.navigate(['/login'], {
             queryParams: { returnUrl: this.router.url, reason: 'session-expired' }
           });
+        } else if (error.status === 403) {
+          // Forbidden - user doesn't have permission
+          console.error('Access forbidden:', error);
         }
         return throwError(() => error);
       })

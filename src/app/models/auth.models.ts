@@ -22,5 +22,9 @@ export interface UserDto {
   birthdate: Date;
   phone?: string;
   currentCity?: string;
+  companyId?: number;
+  companyName?: string;
+  branchId?: number;
+  branchName?: string;
 }
 

@@ -7,5 +7,5 @@
  * For production, update baseUrl to your production API endpoint
  */
 export const API_CONFIG = {
-  baseUrl: 'http://localhost:7000/api'  // Direct connection to local backend
+  baseUrl: 'https://localhost:7000/api'  // Direct connection to local backend
 };

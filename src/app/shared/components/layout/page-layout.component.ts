@@ -48,7 +48,16 @@ export class PageLayoutComponent implements OnInit {
   }
 
   ngOnInit(): void {
+    // Load menu items initially
     this.menuItems = this.menuService.getMenuItems();
+    
+    // Subscribe to user changes to update menu dynamically
+    this.authService.currentUser$.subscribe(user => {
+      if (user) {
+        this.currentUser = user;
+        this.menuItems = this.menuService.getMenuItems();
+      }
+    });
   }
 
   get sidebarWidth(): string {

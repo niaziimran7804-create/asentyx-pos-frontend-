@@ -1,6 +1,11 @@
 import { Component, OnInit } from '@angular/core';
 import { UserService } from '../../services/user.service';
 import { UserDto, CreateUserDto, UpdateUserDto } from '../../models/user.models';
+import { BranchService } from '../../services/branch.service';
+import { BranchDto } from '../../models/branch.models';
+import { CompanyService } from '../../services/company.service';
+import { CompanyDto } from '../../models/company.models';
+import { AuthService } from '../../services/auth.service';
 import Swal from 'sweetalert2';
 
 @Component({
@@ -10,8 +15,11 @@ import Swal from 'sweetalert2';
 })
 export class UsersComponent implements OnInit {
   users: UserDto[] = [];
+  branches: BranchDto[] = [];
+  companies: CompanyDto[] = [];
   showForm: boolean = false;
   editingUser: UserDto | null = null;
+  isSuperAdmin: boolean = false;
   userForm: CreateUserDto = {
     userId: '',
     firstName: '',
@@ -20,7 +28,9 @@ export class UsersComponent implements OnInit {
     role: 'Salesman',
     age: 0,
     salary: 0,
-    birthdate: new Date()
+    birthdate: new Date(),
+    companyId: undefined,
+    branchId: undefined
   };
 
   // Sidebar and Navbar properties
@@ -42,11 +52,25 @@ export class UsersComponent implements OnInit {
     { label: 'Users', icon: 'fas fa-users', route: '/users' }
   ];
 
-  constructor(private userService: UserService) { }
+  constructor(
+    private userService: UserService,
+    private branchService: BranchService,
+    private companyService: CompanyService,
+    private authService: AuthService
+  ) { }
 
   ngOnInit(): void {
     this.loading = true;
+    const currentUser = this.authService.getCurrentUser();
+    this.isSuperAdmin = currentUser?.role === 'SuperAdmin';
+    
     this.loadUsers();
+    if (this.isSuperAdmin) {
+      this.loadCompanies();
+    } else {
+      this.loadBranches();
+    }
+    
     this.currentUser = {
       name: localStorage.getItem('userName') || 'User',
       role: localStorage.getItem('userRole') || 'cashier'
@@ -78,6 +102,43 @@ export class UsersComponent implements OnInit {
         });
       }
     });
+  }
+
+  loadCompanies(): void {
+    this.companyService.getAllCompanies().subscribe({
+      next: (data) => {
+        this.companies = data;
+      },
+      error: (error) => {
+        console.error('Error loading companies:', error);
+      }
+    });
+  }
+
+  loadBranches(): void {
+    const currentUser = this.authService.getCurrentUser();
+    const companyId = this.userForm.companyId || currentUser?.companyId;
+    
+    if (companyId) {
+      this.branchService.getBranchesByCompany(companyId).subscribe({
+        next: (data) => {
+          this.branches = data;
+        },
+        error: (error) => {
+          console.error('Error loading branches:', error);
+        }
+      });
+    }
+  }
+
+  onCompanyChange(): void {
+    // Reset branch selection when company changes
+    this.userForm.branchId = undefined;
+    this.branches = [];
+    // Load branches for the selected company
+    if (this.userForm.companyId) {
+      this.loadBranches();
+    }
   }
 
   createUser(): void {
@@ -114,8 +175,14 @@ export class UsersComponent implements OnInit {
       role: user.role,
       age: user.age,
       salary: user.salary,
-      birthdate: new Date(user.birthdate)
+      birthdate: new Date(user.birthdate),
+      companyId: user.companyId,
+      branchId: user.branchId
     };
+    // Load branches for the user's company
+    if (user.companyId) {
+      this.loadBranches();
+    }
     this.showForm = true;
   }
 
@@ -127,7 +194,9 @@ export class UsersComponent implements OnInit {
         role: this.userForm.role,
         age: this.userForm.age,
         salary: this.userForm.salary,
-        birthdate: this.userForm.birthdate
+        birthdate: this.userForm.birthdate,
+        companyId: this.userForm.companyId,
+        branchId: this.userForm.branchId
       };
       this.userService.updateUser(this.editingUser.id, updateDto).subscribe({
         next: () => {
@@ -191,6 +260,7 @@ export class UsersComponent implements OnInit {
   resetForm(): void {
     this.showForm = false;
     this.editingUser = null;
+    this.branches = [];
     this.userForm = {
       userId: '',
       firstName: '',
@@ -199,7 +269,9 @@ export class UsersComponent implements OnInit {
       role: 'Salesman',
       age: 0,
       salary: 0,
-      birthdate: new Date()
+      birthdate: new Date(),
+      companyId: undefined,
+      branchId: undefined
     };
   }
 }
