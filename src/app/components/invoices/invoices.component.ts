@@ -487,7 +487,7 @@ export class InvoicesComponent implements OnInit {
         Swal.fire({
           icon: 'success',
           title: 'Payment Added!',
-          text: `Payment of ${this.formatCurrency(payment.paymentAmount)} has been recorded`,
+          text: `Payment of ${this.formatCurrency(this.paymentForm.amount)} has been recorded`,
           confirmButtonColor: '#667eea',
           timer: 2000
         });
