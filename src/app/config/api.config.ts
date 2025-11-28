@@ -1,4 +1,11 @@
+/**
+ * API Configuration
+ * 
+ * Direct connection to local backend server
+ * Make sure your backend is running on http://localhost:7000
+ * 
+ * For production, update baseUrl to your production API endpoint
+ */
 export const API_CONFIG = {
-  baseUrl: '/api',  // Use relative path to proxy through Vercel
-  proxyTarget: 'http://www.asentyx.com:5000'
+  baseUrl: 'http://localhost:7000/api'  // Direct connection to local backend
 };

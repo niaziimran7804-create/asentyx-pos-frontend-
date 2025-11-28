@@ -18,7 +18,7 @@ import {
   providedIn: 'root'
 })
 export class AccountingService {
-  private apiUrl = '/api/accounting';
+  private apiUrl = `${API_CONFIG.baseUrl}/accounting`;
 
   constructor(private http: HttpClient) { }
 
