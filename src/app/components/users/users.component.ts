@@ -142,6 +142,13 @@ export class UsersComponent implements OnInit {
   }
 
   createUser(): void {
+    const currentUser = this.authService.getCurrentUser();
+    
+    // Auto-assign companyId if not set (for non-SuperAdmin users)
+    if (!this.userForm.companyId && currentUser?.companyId) {
+      this.userForm.companyId = currentUser.companyId;
+    }
+    
     this.userService.createUser(this.userForm).subscribe({
       next: () => {
         Swal.fire({
