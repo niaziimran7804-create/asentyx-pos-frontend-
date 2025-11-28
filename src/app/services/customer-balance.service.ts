@@ -12,7 +12,7 @@ import {
   providedIn: 'root'
 })
 export class CustomerBalanceService {
-  private apiUrl = '/api';
+  private apiUrl = `${API_CONFIG.baseUrl}`;
 
   constructor(private http: HttpClient) {}
 
