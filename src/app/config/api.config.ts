@@ -6,6 +6,23 @@
  * 
  * For production, update baseUrl to your production API endpoint
  */
+const resolveBaseUrl = (): string => {
+  // In dev (served on localhost) use the Angular proxy (`/api`) so CORS isn't required locally.
+  try {
+    if (typeof window !== 'undefined') {
+      const host = window.location.hostname;
+      if (host === 'localhost' || host === '127.0.0.1') {
+        return '/api';
+      }
+    }
+  } catch (e) {
+    // ignore
+  }
+
+  // In production, point to the production API domain (Vercel frontend -> backend on asentyx.com:5000)
+  return 'https://asentyx.com:5000/api';
+};
+
 export const API_CONFIG = {
-  baseUrl: 'https://localhost:7000/api'  // Direct connection to local backend
+  baseUrl: resolveBaseUrl()
 };
