@@ -654,7 +654,7 @@
                     <td>
                       <input type="checkbox" class="form-check-input" 
                              [(ngModel)]="item.selected" 
-                             (change)="togglePartialItem(item)"
+                             (ngModelChange)="onPartialItemSelectionChange(item)"
                              [id]="'item-' + item.productId">
                     </td>
                     <td>

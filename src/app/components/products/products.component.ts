@@ -251,7 +251,7 @@ export class ProductsComponent implements OnInit {
         productPerUnitPrice: this.productForm.productPerUnitPrice,
         productMSRP: this.productForm.productMSRP,
         productDiscountRate: this.productForm.productDiscountRate,
-        productColor: this.productForm.productColor,
+        //productColor: this.productForm.productColor,
         productUnitStock: this.productForm.productUnitStock,
         stockThreshold: this.productForm.stockThreshold || 10,
         productImageBase64: productImageBase64 || this.productForm.productImageBase64

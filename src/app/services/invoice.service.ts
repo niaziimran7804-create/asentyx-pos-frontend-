@@ -94,14 +94,56 @@ export class InvoiceService {
   }
 
   openInvoicePrintWindow(id: number): void {
-    const url = `${this.apiUrl}/${id}/print`;
+    const token = localStorage.getItem('token');
+    const companyId = localStorage.getItem('companyId');
+    const branchId = localStorage.getItem('branchId');
+    
+    if (!branchId) {
+      console.error('Branch ID is required for printing invoices');
+      alert('Branch context is missing. Please log out and log in again.');
+      return;
+    }
+    
+    // Construct full URL for window.open (needs absolute URL)
+    const baseUrl = API_CONFIG.baseUrl.replace('/api', ''); // Get base URL without /api
+    let url = `${baseUrl}/api/invoices/${id}/print?token=${encodeURIComponent(token || '')}`;
+    
+    if (companyId) {
+      url += `&companyId=${encodeURIComponent(companyId)}`;
+    }
+    if (branchId) {
+      url += `&branchId=${encodeURIComponent(branchId)}`;
+    }
+    
+    console.log('Opening invoice print window:', { id, companyId, branchId, url: url.replace(token || '', '***') });
     window.open(url, '_blank');
   }
 
   bulkPrintInvoices(invoiceIds: number[]): void {
+    const token = localStorage.getItem('token');
+    const companyId = localStorage.getItem('companyId');
+    const branchId = localStorage.getItem('branchId');
+    
+    if (!branchId) {
+      console.error('Branch ID is required for printing invoices');
+      alert('Branch context is missing. Please log out and log in again.');
+      return;
+    }
+    
     // Create comma-separated string of invoice IDs
     const idsParam = invoiceIds.join(',');
-    const url = `${this.apiUrl}/bulk-print?invoiceIds=${idsParam}`;
+    // Construct full URL for window.open (needs absolute URL)
+    const baseUrl = API_CONFIG.baseUrl.replace('/api', ''); // Get base URL without /api
+    let url = `${baseUrl}/api/invoices/bulk-print?invoiceIds=${idsParam}&token=${encodeURIComponent(token || '')}`;
+    
+    if (companyId) {
+      url += `&companyId=${encodeURIComponent(companyId)}`;
+    }
+    if (branchId) {
+      url += `&branchId=${encodeURIComponent(branchId)}`;
+    }
+    
+    console.log('Opening bulk print window:', { invoiceIds, companyId, branchId });
     // Open in new window - the print dialog will be triggered automatically
     window.open(url, '_blank');
   }

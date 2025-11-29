@@ -592,8 +592,8 @@ export class ReturnsComponent implements OnInit {
     console.log('All partial return items:', this.partialReturnItems);
   }
 
-  togglePartialItem(item: PartialReturnItem): void {
-    item.selected = !item.selected;
+  onPartialItemSelectionChange(item: PartialReturnItem): void {
+    // ngModel already handles the toggle, just handle the side effects
     if (!item.selected) {
       item.returnQuantity = 0;
       item.returnAmount = 0;

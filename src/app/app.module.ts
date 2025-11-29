@@ -22,10 +22,12 @@ import { CompanyRegistrationComponent } from './components/company-registration/
 import { BranchesComponent } from './components/branches/branches.component';
 import { BranchFormComponent } from './components/branch-form/branch-form.component';
 import { AuthInterceptor } from './interceptors/auth.interceptor';
+import { LoadingInterceptor } from './interceptors/loading.interceptor';
 import { AuthGuard } from './guards/auth.guard';
 import { SidebarComponent } from './shared/components/sidebar/sidebar.component';
 import { NavbarComponent } from './shared/components/navbar/navbar.component';
 import { PageLayoutComponent } from './shared/components/layout/page-layout.component';
+import { LoadingComponent } from './shared/components/loading/loading.component';
 
 @NgModule({
   declarations: [
@@ -56,9 +58,15 @@ import { PageLayoutComponent } from './shared/components/layout/page-layout.comp
     AppRoutingModule,
     SidebarComponent,
     NavbarComponent,
-    PageLayoutComponent
+    PageLayoutComponent,
+    LoadingComponent
   ],
   providers: [
+    {
+      provide: HTTP_INTERCEPTORS,
+      useClass: LoadingInterceptor,
+      multi: true
+    },
     {
       provide: HTTP_INTERCEPTORS,
       useClass: AuthInterceptor,
