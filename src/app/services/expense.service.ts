@@ -8,7 +8,7 @@ import { ExpenseDto, CreateExpenseDto } from '../models/expense.models';
   providedIn: 'root'
 })
 export class ExpenseService {
-  private apiUrl = '/api/expenses';
+  private apiUrl = `${API_CONFIG.baseUrl}/expenses`;
 
   constructor(private http: HttpClient) { }
 

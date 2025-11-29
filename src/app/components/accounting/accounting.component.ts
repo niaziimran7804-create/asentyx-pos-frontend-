@@ -325,6 +325,10 @@ export class AccountingComponent implements OnInit {
           data: data.expensesData || []
         },
         {
+          name: 'Refunds',
+          data: data.refundsData || []
+        },
+        {
           name: 'Profit',
           data: data.profitData || []
         }
@@ -334,9 +338,12 @@ export class AccountingComponent implements OnInit {
         height: 350,
         toolbar: {
           show: true
+        },
+        zoom: {
+          enabled: true
         }
       },
-      colors: ['#667eea', '#f56565', '#48bb78'],
+      colors: ['#667eea', '#f56565', '#f59e0b', '#48bb78'],
       dataLabels: {
         enabled: false
       },
@@ -347,10 +354,16 @@ export class AccountingComponent implements OnInit {
       xaxis: {
         categories: data.labels || [],
         labels: {
+          rotate: -45,
+          rotateAlways: false,
+          hideOverlappingLabels: true,
+          trim: true,
           style: {
-            colors: '#6b7280'
+            colors: '#6b7280',
+            fontSize: '12px'
           }
-        }
+        },
+        tickPlacement: 'on'
       },
       yaxis: {
         labels: {
@@ -358,7 +371,8 @@ export class AccountingComponent implements OnInit {
             return '$' + value.toFixed(2);
           },
           style: {
-            colors: '#6b7280'
+            colors: '#6b7280',
+            fontSize: '12px'
           }
         }
       },
@@ -366,7 +380,21 @@ export class AccountingComponent implements OnInit {
         borderColor: '#e5e7eb'
       },
       legend: {
-        position: 'top'
+        position: 'top',
+        horizontalAlign: 'left',
+        floating: false,
+        offsetY: 0,
+        offsetX: 0,
+        fontSize: '13px',
+        markers: {
+          width: 12,
+          height: 12,
+          radius: 2
+        },
+        itemMargin: {
+          horizontal: 10,
+          vertical: 5
+        }
       },
       tooltip: {
         y: {
@@ -374,7 +402,29 @@ export class AccountingComponent implements OnInit {
             return '$' + value.toFixed(2);
           }
         }
-      }
+      },
+      responsive: [
+        {
+          breakpoint: 768,
+          options: {
+            chart: {
+              height: 300
+            },
+            legend: {
+              position: 'bottom',
+              fontSize: '11px'
+            },
+            xaxis: {
+              labels: {
+                rotate: -45,
+                style: {
+                  fontSize: '10px'
+                }
+              }
+            }
+          }
+        }
+      ]
     } as Partial<ChartOptions>;
   }
 
@@ -387,10 +437,11 @@ export class AccountingComponent implements OnInit {
         }
       ],
       chart: {
-        type: 'bar',
+        type: 'line',
         height: 350,
         toolbar: {
-          show: true
+          show: true,
+          offsetY: -5
         }
       },
       colors: ['#764ba2'],

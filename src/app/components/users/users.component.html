@@ -51,6 +51,22 @@
                     <option value="Salesman">Salesman</option>
                   </select>
                 </div>
+                <div class="col-md-4" *ngIf="isSuperAdmin">
+                  <label class="form-label fw-semibold"><i class="fas fa-city me-2"></i>Company</label>
+                  <select class="form-select" [(ngModel)]="userForm.companyId" name="companyId" (change)="onCompanyChange()">
+                    <option [ngValue]="undefined">-- Select Company --</option>
+                    <option *ngFor="let company of companies" [ngValue]="company.companyId">{{ company.companyName }}</option>
+                  </select>
+                  <small class="text-muted">Select company first to load branches</small>
+                </div>
+                <div class="col-md-4">
+                  <label class="form-label fw-semibold"><i class="fas fa-building me-2"></i>Branch</label>
+                  <select class="form-select" [(ngModel)]="userForm.branchId" name="branchId" [disabled]="isSuperAdmin && !userForm.companyId">
+                    <option [ngValue]="undefined">-- No Branch Assigned --</option>
+                    <option *ngFor="let branch of branches" [ngValue]="branch.branchId">{{ branch.branchName }}</option>
+                  </select>
+                  <small class="text-muted">Assign user to a specific branch</small>
+                </div>
                 <div class="col-md-4">
                   <label class="form-label fw-semibold"><i class="fas fa-birthday-cake me-2"></i>Age *</label>
                   <input type="number" class="form-control" [(ngModel)]="userForm.age" name="age" placeholder="Enter age" required />
@@ -85,6 +101,7 @@
                     <th class="fw-semibold"><i class="fas fa-id-badge me-2"></i>User ID</th>
                     <th class="fw-semibold"><i class="fas fa-user me-2"></i>Name</th>
                     <th class="fw-semibold"><i class="fas fa-user-tag me-2"></i>Role</th>
+                    <th class="fw-semibold"><i class="fas fa-building me-2"></i>Branch</th>
                     <th class="fw-semibold"><i class="fas fa-envelope me-2"></i>Email</th>
                     <th class="fw-semibold"><i class="fas fa-phone me-2"></i>Phone</th>
                     <th class="fw-semibold text-center"><i class="fas fa-cog me-2"></i>Actions</th>
@@ -96,6 +113,14 @@
                     <td class="fw-semibold">{{ user.userId }}</td>
                     <td>{{ user.firstName }} {{ user.lastName }}</td>
                     <td><span class="badge" [class.bg-danger]="user.role === 'Admin'" [class.bg-primary]="user.role === 'Cashier'" [class.bg-info]="user.role === 'Salesman'">{{ user.role }}</span></td>
+                    <td>
+                      <span *ngIf="user.branchName" class="badge bg-success">
+                        <i class="fas fa-building me-1"></i>{{ user.branchName }}
+                      </span>
+                      <span *ngIf="!user.branchName" class="text-muted">
+                        <i class="fas fa-minus-circle me-1"></i>No Branch
+                      </span>
+                    </td>
                     <td>{{ user.email }}</td>
                     <td>{{ user.phone }}</td>
                     <td class="text-center">
@@ -106,7 +131,7 @@
                     </td>
                   </tr>
                   <tr *ngIf="users.length === 0">
-                    <td colspan="7" class="text-center text-muted py-4">
+                    <td colspan="8" class="text-center text-muted py-4">
                       <i class="fas fa-inbox fa-3x mb-3 d-block"></i>
                       <p class="mb-0">No users found</p>
                     </td>

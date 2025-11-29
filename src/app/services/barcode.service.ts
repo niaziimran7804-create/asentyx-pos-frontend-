@@ -8,7 +8,7 @@ import { API_CONFIG } from '../config/api.config';
   providedIn: 'root'
 })
 export class BarcodeService {
-  private apiUrl = '/api/barcodes';
+  private apiUrl = `${API_CONFIG.baseUrl}/barcodes`;
 
   constructor(private http: HttpClient) { }
 

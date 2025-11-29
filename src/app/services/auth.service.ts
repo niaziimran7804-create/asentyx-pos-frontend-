@@ -9,7 +9,7 @@ import { API_CONFIG } from '../config/api.config';
   providedIn: 'root'
 })
 export class AuthService {
-  private apiUrl = '/api/auth';
+  private apiUrl = `${API_CONFIG.baseUrl}/auth`;
   private currentUserSubject = new BehaviorSubject<UserDto | null>(null);
   public currentUser$ = this.currentUserSubject.asObservable();
 
@@ -31,8 +31,20 @@ export class AuthService {
           localStorage.setItem('userId', response.user.userId.toString());
           localStorage.setItem('userName', `${response.user.firstName} ${response.user.lastName}`);
           localStorage.setItem('userRole', response.user.role);
+          
+          // Store company and branch IDs for multi-tenancy
+          if (response.user.companyId) {
+            localStorage.setItem('companyId', response.user.companyId.toString());
+          }
+          if (response.user.branchId) {
+            localStorage.setItem('branchId', response.user.branchId.toString());
+          }
+          
           this.currentUserSubject.next(response.user);
-          console.log('Auth service: storage complete');
+          console.log('Auth service: storage complete', {
+            companyId: response.user.companyId,
+            branchId: response.user.branchId
+          });
         })
       );
   }
@@ -40,6 +52,11 @@ export class AuthService {
   logout(): void {
     localStorage.removeItem('token');
     localStorage.removeItem('user');
+    localStorage.removeItem('userId');
+    localStorage.removeItem('userName');
+    localStorage.removeItem('userRole');
+    localStorage.removeItem('companyId');
+    localStorage.removeItem('branchId');
     this.currentUserSubject.next(null);
   }
 

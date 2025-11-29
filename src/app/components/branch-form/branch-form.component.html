@@ -1,0 +1,194 @@
+<app-page-layout>
+  <div class="branch-form-container">
+    <!-- Header -->
+    <div class="form-header">
+      <div>
+        <h2><i class="fas fa-building"></i> {{ getTitle() }}</h2>
+        <p class="text-muted">Fill in the branch details below</p>
+      </div>
+      <button class="btn btn-secondary" (click)="goBack()">
+        <i class="fas fa-arrow-left"></i> Back to Branches
+      </button>
+    </div>
+
+    <!-- Form -->
+    <form [formGroup]="branchForm" (ngSubmit)="onSubmit()" class="branch-form">
+      <!-- Branch Information Section -->
+      <div class="form-section">
+        <h3><i class="fas fa-info-circle"></i> Branch Information</h3>
+
+        <!-- Company Selection (Super Admin Only) -->
+        <div class="form-group" *ngIf="currentUser?.role === 'Admin'">
+          <label for="companyId">Company <span class="required">*</span></label>
+          <select 
+            id="companyId" 
+            formControlName="companyId" 
+            class="form-control">
+            <option value="">Select Company</option>
+            <option *ngFor="let company of companies" [value]="company.companyId">
+              {{ company.companyName }}
+            </option>
+          </select>
+          <div *ngIf="branchForm.get('companyId')?.invalid && branchForm.get('companyId')?.touched" class="error-message">
+            Company is required
+          </div>
+        </div>
+
+        <!-- Branch Name and Code -->
+        <div class="form-row">
+          <div class="form-group">
+            <label for="branchName">Branch Name <span class="required">*</span></label>
+            <input
+              type="text"
+              id="branchName"
+              formControlName="branchName"
+              class="form-control"
+              placeholder="e.g., Downtown Branch"
+            />
+            <div *ngIf="branchForm.get('branchName')?.invalid && branchForm.get('branchName')?.touched" class="error-message">
+              Branch name is required
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label for="branchCode">Branch Code <span class="required">*</span></label>
+            <input
+              type="text"
+              id="branchCode"
+              formControlName="branchCode"
+              class="form-control"
+              placeholder="e.g., DT01"
+              [readonly]="isEditMode"
+            />
+            <div *ngIf="branchForm.get('branchCode')?.invalid && branchForm.get('branchCode')?.touched" class="error-message">
+              Branch code is required
+            </div>
+            <small *ngIf="isEditMode" class="text-muted">Branch code cannot be changed</small>
+          </div>
+        </div>
+
+        <!-- Email and Phone -->
+        <div class="form-row">
+          <div class="form-group">
+            <label for="email">Email</label>
+            <input
+              type="email"
+              id="email"
+              formControlName="email"
+              class="form-control"
+              placeholder="branch@company.com"
+            />
+            <div *ngIf="branchForm.get('email')?.invalid && branchForm.get('email')?.touched" class="error-message">
+              Valid email is required
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label for="phone">Phone</label>
+            <input
+              type="tel"
+              id="phone"
+              formControlName="phone"
+              class="form-control"
+              placeholder="+1234567890"
+            />
+          </div>
+        </div>
+      </div>
+
+      <!-- Location Information Section -->
+      <div class="form-section">
+        <h3><i class="fas fa-map-marker-alt"></i> Location Information</h3>
+
+        <!-- Address -->
+        <div class="form-group">
+          <label for="address">Address</label>
+          <input
+            type="text"
+            id="address"
+            formControlName="address"
+            class="form-control"
+            placeholder="123 Main Street"
+          />
+        </div>
+
+        <!-- City, Country, Postal Code -->
+        <div class="form-row">
+          <div class="form-group">
+            <label for="city">City</label>
+            <input
+              type="text"
+              id="city"
+              formControlName="city"
+              class="form-control"
+              placeholder="New York"
+            />
+          </div>
+
+          <div class="form-group">
+            <label for="country">Country</label>
+            <input
+              type="text"
+              id="country"
+              formControlName="country"
+              class="form-control"
+              placeholder="USA"
+            />
+          </div>
+
+          <div class="form-group">
+            <label for="postalCode">Postal Code</label>
+            <input
+              type="text"
+              id="postalCode"
+              formControlName="postalCode"
+              class="form-control"
+              placeholder="10001"
+            />
+          </div>
+        </div>
+      </div>
+
+      <!-- Settings Section -->
+      <div class="form-section">
+        <h3><i class="fas fa-cog"></i> Settings</h3>
+
+        <div class="form-row">
+          <div class="form-group">
+            <label class="checkbox-label">
+              <input type="checkbox" formControlName="isActive" />
+              <span>Active</span>
+            </label>
+            <small class="text-muted d-block mt-1">Inactive branches will not appear in operations</small>
+          </div>
+
+          <div class="form-group">
+            <label class="checkbox-label">
+              <input type="checkbox" formControlName="isHeadOffice" />
+              <span>Head Office</span>
+            </label>
+            <small class="text-muted d-block mt-1">Mark this as the main/head office branch</small>
+          </div>
+        </div>
+      </div>
+
+      <!-- Form Actions -->
+      <div class="form-actions">
+        <button
+          type="button"
+          class="btn btn-secondary"
+          (click)="goBack()"
+          [disabled]="loading">
+          <i class="fas fa-times"></i> Cancel
+        </button>
+        <button
+          type="submit"
+          class="btn btn-primary"
+          [disabled]="branchForm.invalid || loading">
+          <i class="fa" [ngClass]="loading ? 'fa-spinner fa-spin' : 'fa-check'"></i>
+          {{ getSubmitButtonText() }}
+        </button>
+      </div>
+    </form>
+  </div>
+</app-page-layout>

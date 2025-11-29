@@ -8,7 +8,7 @@ import { API_CONFIG } from '../config/api.config';
   providedIn: 'root'
 })
 export class ProductService {
-  private apiUrl = '/api/products';
+  private apiUrl = `${API_CONFIG.baseUrl}/products`;
 
   constructor(private http: HttpClient) { }
 

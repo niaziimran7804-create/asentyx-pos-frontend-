@@ -94,16 +94,61 @@ export class InvoiceService {
   }
 
   openInvoicePrintWindow(id: number): void {
-    const url = `${this.apiUrl}/${id}/print`;
-    window.open(url, '_blank');
+    // Open a blank window synchronously to avoid popup blockers
+    const printWindow = window.open('', '_blank');
+    if (!printWindow) {
+      alert('Popup blocked. Please allow popups for this site to print invoices.');
+      return;
+    }
+
+    // Trigger print via POST (no sensitive data in URL). Interceptor will add headers.
+    this.http.post(`${this.apiUrl}/${id}/print`, {}, { responseType: 'blob' }).subscribe({
+      next: (blob) => {
+        const fileURL = URL.createObjectURL(blob as Blob);
+        try {
+          // Try to navigate the opened window to the blob URL
+          printWindow.location.href = fileURL;
+        } catch (e) {
+          // Fallback: write an iframe into the blank window
+          printWindow.document.open();
+          printWindow.document.write('<html><body style="margin:0;padding:0;"><iframe src="' + fileURL + '" style="border:none;width:100%;height:100%;"></iframe></body></html>');
+          printWindow.document.close();
+        }
+      },
+      error: (err) => {
+        printWindow.close();
+        console.error('Failed to print invoice:', err);
+        alert('Failed to print invoice. See console for details.');
+      }
+    });
   }
 
   bulkPrintInvoices(invoiceIds: number[]): void {
-    // Create comma-separated string of invoice IDs
-    const idsParam = invoiceIds.join(',');
-    const url = `${this.apiUrl}/bulk-print?invoiceIds=${idsParam}`;
-    // Open in new window - the print dialog will be triggered automatically
-    window.open(url, '_blank');
+    // Open blank window synchronously to avoid popup blockers
+    const printWindow = window.open('', '_blank');
+    if (!printWindow) {
+      alert('Popup blocked. Please allow popups for this site to print invoices.');
+      return;
+    }
+
+    // Send invoice IDs in POST body, interceptor will add headers
+    this.http.post(`${this.apiUrl}/bulk-print`, { invoiceIds }, { responseType: 'blob' }).subscribe({
+      next: (blob) => {
+        const fileURL = URL.createObjectURL(blob as Blob);
+        try {
+          printWindow.location.href = fileURL;
+        } catch (e) {
+          printWindow.document.open();
+          printWindow.document.write('<html><body style="margin:0;padding:0;"><iframe src="' + fileURL + '" style="border:none;width:100%;height:100%;"></iframe></body></html>');
+          printWindow.document.close();
+        }
+      },
+      error: (err) => {
+        printWindow.close();
+        console.error('Failed to bulk print invoices:', err);
+        alert('Failed to print invoices. See console for details.');
+      }
+    });
   }
 
   // Payment Management

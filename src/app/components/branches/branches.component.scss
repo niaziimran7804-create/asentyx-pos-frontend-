@@ -1,0 +1,370 @@
+.branches-container {
+  padding: 30px;
+  max-width: 1400px;
+  margin: 0 auto;
+}
+
+.page-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 30px;
+  flex-wrap: wrap;
+  gap: 20px;
+
+  .header-content {
+    h2 {
+      color: #333;
+      margin-bottom: 5px;
+      font-size: 1.8em;
+
+      i {
+        color: #667eea;
+        margin-right: 10px;
+      }
+    }
+
+    p {
+      margin: 0;
+      font-size: 0.95em;
+    }
+  }
+}
+
+.search-section {
+  display: flex;
+  gap: 15px;
+  margin-bottom: 30px;
+  align-items: center;
+  flex-wrap: wrap;
+
+  .search-box {
+    flex: 1;
+    min-width: 300px;
+    position: relative;
+
+    i {
+      position: absolute;
+      left: 15px;
+      top: 50%;
+      transform: translateY(-50%);
+      color: #999;
+    }
+
+    input {
+      width: 100%;
+      padding: 12px 15px 12px 45px;
+      border: 2px solid #e0e0e0;
+      border-radius: 10px;
+      font-size: 1em;
+      transition: all 0.3s;
+
+      &:focus {
+        outline: none;
+        border-color: #667eea;
+        box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+      }
+    }
+  }
+
+  .results-count {
+    .badge {
+      font-size: 0.9em;
+      padding: 8px 15px;
+    }
+  }
+}
+
+.loading-container {
+  text-align: center;
+  padding: 80px 20px;
+}
+
+.branches-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(380px, 1fr));
+  gap: 25px;
+  margin-bottom: 30px;
+}
+
+.branch-card {
+  background: white;
+  border-radius: 12px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+  transition: all 0.3s ease;
+  overflow: hidden;
+  border: 1px solid #f0f0f0;
+
+  &:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.12);
+  }
+
+  .card-header {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    padding: 20px;
+    display: flex;
+    justify-content: space-between;
+    align-items: start;
+
+    .branch-title {
+      flex: 1;
+
+      h3 {
+        color: white;
+        margin: 0 0 8px 0;
+        font-size: 1.3em;
+        font-weight: 600;
+      }
+
+      .head-office-badge {
+        display: inline-block;
+        background: #ffd700;
+        color: #333;
+        padding: 4px 10px;
+        border-radius: 6px;
+        font-size: 0.75em;
+        font-weight: 600;
+
+        i {
+          margin-right: 5px;
+        }
+      }
+    }
+
+    .status-badge {
+      padding: 6px 12px;
+      border-radius: 20px;
+      font-size: 0.8em;
+      font-weight: 600;
+
+      &.badge-active {
+        background: #d4edda;
+        color: #155724;
+      }
+
+      &.badge-inactive {
+        background: #f8d7da;
+        color: #721c24;
+      }
+    }
+  }
+
+  .card-body {
+    padding: 20px;
+
+    .branch-code {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      color: #666;
+      margin-bottom: 20px;
+      padding: 10px;
+      background: #f8f9fa;
+      border-radius: 8px;
+      font-size: 0.95em;
+
+      i {
+        color: #667eea;
+      }
+
+      strong {
+        color: #333;
+      }
+    }
+
+    .info-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+      gap: 15px;
+      margin-bottom: 20px;
+    }
+
+    .info-item {
+      display: flex;
+      align-items: start;
+      gap: 10px;
+
+      i {
+        font-size: 1.2em;
+        margin-top: 2px;
+      }
+
+      small {
+        display: block;
+        font-size: 0.75em;
+        margin-bottom: 2px;
+      }
+
+      p {
+        font-size: 0.9em;
+        color: #333;
+        font-weight: 500;
+      }
+    }
+
+    .stats-section {
+      display: flex;
+      gap: 20px;
+      padding: 15px 0;
+      border-top: 1px solid #f0f0f0;
+      border-bottom: 1px solid #f0f0f0;
+      margin-bottom: 15px;
+
+      .stat-item {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        color: #666;
+        font-size: 0.9em;
+
+        i {
+          color: #667eea;
+          font-size: 1.1em;
+        }
+
+        span {
+          font-weight: 500;
+        }
+      }
+    }
+
+    .address-section {
+      display: flex;
+      align-items: start;
+      gap: 8px;
+      color: #666;
+      font-size: 0.9em;
+
+      i {
+        color: #dc3545;
+        margin-top: 2px;
+      }
+    }
+  }
+
+  .card-footer {
+    display: flex;
+    gap: 10px;
+    padding: 15px 20px;
+    background: #f8f9fa;
+    border-top: 1px solid #f0f0f0;
+  }
+}
+
+.btn {
+  padding: 10px 20px;
+  border: none;
+  border-radius: 8px;
+  font-size: 0.9em;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+
+  &:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+  }
+
+  i {
+    font-size: 0.9em;
+  }
+}
+
+.btn-primary {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+
+  &:hover:not(:disabled) {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+  }
+}
+
+.btn-sm {
+  padding: 8px 15px;
+  font-size: 0.85em;
+}
+
+.btn-info {
+  background: #17a2b8;
+  color: white;
+
+  &:hover:not(:disabled) {
+    background: #138496;
+  }
+}
+
+.btn-danger {
+  background: #dc3545;
+  color: white;
+
+  &:hover:not(:disabled) {
+    background: #c82333;
+  }
+}
+
+.empty-state {
+  text-align: center;
+  padding: 80px 20px;
+  color: #999;
+
+  .empty-icon {
+    font-size: 5em;
+    color: #e0e0e0;
+    margin-bottom: 20px;
+  }
+
+  h3 {
+    color: #666;
+    margin-bottom: 10px;
+  }
+
+  p {
+    color: #999;
+    font-size: 1em;
+  }
+}
+
+// Responsive Design
+@media (max-width: 768px) {
+  .branches-container {
+    padding: 20px 15px;
+  }
+
+  .page-header {
+    flex-direction: column;
+    align-items: stretch;
+
+    .btn {
+      width: 100%;
+      justify-content: center;
+    }
+  }
+
+  .branches-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .search-section {
+    flex-direction: column;
+
+    .search-box {
+      width: 100%;
+    }
+  }
+
+  .branch-card {
+    .card-footer {
+      flex-wrap: wrap;
+
+      .btn {
+        flex: 1;
+        min-width: 80px;
+      }
+    }
+  }
+}

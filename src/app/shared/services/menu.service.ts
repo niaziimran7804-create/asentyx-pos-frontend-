@@ -11,7 +11,12 @@ export class MenuService {
   getMenuItems(): MenuItem[] {
     const userRole = this.authService.getCurrentUser()?.role;
     const isAdmin = userRole === 'Admin';
+    const isSuperAdmin = userRole === 'SuperAdmin';
+    const isCompanyAdmin = userRole === 'CompanyAdmin';
     const isCashier = userRole === 'Cashier';
+
+    console.log('MenuService - Current user role:', userRole);
+    console.log('MenuService - isAdmin:', isAdmin, 'isSuperAdmin:', isSuperAdmin, 'isCompanyAdmin:', isCompanyAdmin);
 
     const baseMenuItems: MenuItem[] = [
       { label: 'Dashboard', icon: 'fas fa-chart-line', route: '/dashboard' },
@@ -25,14 +30,17 @@ export class MenuService {
     ];
 
     // Add role-specific menu items
-    if (isAdmin || isCashier) {
+    if (isAdmin || isSuperAdmin || isCompanyAdmin || isCashier) {
       baseMenuItems.push({ label: 'Barcodes', icon: 'fas fa-barcode', route: '/barcodes' });
     }
 
-    if (isAdmin) {
+    if (isAdmin || isSuperAdmin || isCompanyAdmin) {
       baseMenuItems.push({ label: 'Expenses', icon: 'fas fa-money-bill-wave', route: '/expenses' });
       baseMenuItems.push({ label: 'Users', icon: 'fas fa-users', route: '/users' });
+      baseMenuItems.push({ label: 'Branches', icon: 'fas fa-building', route: '/branches' });
     }
+
+    console.log('MenuService - Total menu items:', baseMenuItems.length);
 
     return baseMenuItems;
   }

@@ -1,0 +1,163 @@
+<app-page-layout>
+  <div class="branches-container">
+    <!-- Header -->
+    <div class="page-header">
+      <div class="header-content">
+        <h2><i class="fas fa-building"></i> Branches Management</h2>
+        <p class="text-muted">Manage your company branches and locations</p>
+      </div>
+      <button 
+        *ngIf="canManageBranches()" 
+        class="btn btn-primary"
+        (click)="createBranch()">
+        <i class="fas fa-plus"></i> Add New Branch
+      </button>
+    </div>
+
+    <!-- Search Bar -->
+    <div class="search-section">
+      <div class="search-box">
+        <i class="fas fa-search"></i>
+        <input
+          type="text"
+          [(ngModel)]="searchTerm"
+          (input)="filterBranches()"
+          placeholder="Search by branch name, code, city, or company..."
+          class="form-control"
+        />
+      </div>
+      <div class="results-count">
+        <span class="badge bg-primary">{{ filteredBranches.length }} branches</span>
+      </div>
+    </div>
+
+    <!-- Loading State -->
+    <div *ngIf="loading" class="loading-container">
+      <div class="spinner-border text-primary" role="status">
+        <span class="visually-hidden">Loading...</span>
+      </div>
+      <p class="mt-3 text-muted">Loading branches...</p>
+    </div>
+
+    <!-- Branches Grid -->
+    <div *ngIf="!loading && filteredBranches.length > 0" class="branches-grid">
+      <div class="branch-card" *ngFor="let branch of filteredBranches">
+        <!-- Card Header -->
+        <div class="card-header">
+          <div class="branch-title">
+            <h3>{{ branch.branchName }}</h3>
+            <span class="head-office-badge" *ngIf="branch.isHeadOffice">
+              <i class="fas fa-crown"></i> Head Office
+            </span>
+          </div>
+          <span 
+            class="status-badge" 
+            [ngClass]="branch.isActive ? 'badge-active' : 'badge-inactive'">
+            {{ branch.isActive ? 'Active' : 'Inactive' }}
+          </span>
+        </div>
+
+        <!-- Card Body -->
+        <div class="card-body">
+          <div class="branch-code">
+            <i class="fas fa-tag"></i>
+            <strong>Code:</strong> {{ branch.branchCode }}
+          </div>
+
+          <div class="info-grid">
+            <div class="info-item">
+              <i class="fas fa-building text-primary"></i>
+              <div>
+                <small class="text-muted">Company</small>
+                <p class="mb-0">{{ branch.companyName }}</p>
+              </div>
+            </div>
+
+            <div class="info-item" *ngIf="branch.city">
+              <i class="fas fa-map-marker-alt text-danger"></i>
+              <div>
+                <small class="text-muted">Location</small>
+                <p class="mb-0">{{ branch.city }}, {{ branch.country }}</p>
+              </div>
+            </div>
+
+            <div class="info-item" *ngIf="branch.email">
+              <i class="fas fa-envelope text-info"></i>
+              <div>
+                <small class="text-muted">Email</small>
+                <p class="mb-0">{{ branch.email }}</p>
+              </div>
+            </div>
+
+            <div class="info-item" *ngIf="branch.phone">
+              <i class="fas fa-phone text-success"></i>
+              <div>
+                <small class="text-muted">Phone</small>
+                <p class="mb-0">{{ branch.phone }}</p>
+              </div>
+            </div>
+          </div>
+
+          <!-- Stats -->
+          <div class="stats-section">
+            <div class="stat-item">
+              <i class="fas fa-users"></i>
+              <span>{{ branch.totalUsers }} Users</span>
+            </div>
+            <div class="stat-item">
+              <i class="fas fa-box"></i>
+              <span>{{ branch.totalProducts }} Products</span>
+            </div>
+          </div>
+
+          <!-- Address -->
+          <div class="address-section" *ngIf="branch.address">
+            <i class="fas fa-map-marker-alt"></i>
+            <span>{{ branch.address }}</span>
+            <span *ngIf="branch.postalCode"> - {{ branch.postalCode }}</span>
+          </div>
+        </div>
+
+        <!-- Card Footer / Actions -->
+        <div class="card-footer">
+          <button 
+            class="btn btn-sm btn-info"
+            (click)="viewBranch(branch.branchId)"
+            title="View Details">
+            <i class="fas fa-eye"></i> View
+          </button>
+          <button 
+            *ngIf="canManageBranches()"
+            class="btn btn-sm btn-primary"
+            (click)="editBranch(branch.branchId)"
+            title="Edit Branch">
+            <i class="fas fa-edit"></i> Edit
+          </button>
+          <button 
+            *ngIf="canManageBranches() && !branch.isHeadOffice"
+            class="btn btn-sm btn-danger"
+            (click)="deleteBranch(branch)"
+            title="Deactivate Branch">
+            <i class="fas fa-trash"></i> Deactivate
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Empty State -->
+    <div *ngIf="!loading && filteredBranches.length === 0" class="empty-state">
+      <div class="empty-icon">
+        <i class="fas fa-building"></i>
+      </div>
+      <h3>No Branches Found</h3>
+      <p *ngIf="searchTerm">Try adjusting your search criteria</p>
+      <p *ngIf="!searchTerm">No branches available yet</p>
+      <button 
+        *ngIf="canManageBranches() && !searchTerm" 
+        class="btn btn-primary mt-3"
+        (click)="createBranch()">
+        <i class="fas fa-plus"></i> Create First Branch
+      </button>
+    </div>
+  </div>
+</app-page-layout>

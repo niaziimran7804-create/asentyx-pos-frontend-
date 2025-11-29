@@ -12,6 +12,9 @@ export interface UserDto {
   birthdate: Date;
   phone?: string;
   currentCity?: string;
+  companyId?: number;
+  branchId?: number;
+  branchName?: string;
 }
 
 export interface CreateUserDto {
@@ -32,6 +35,8 @@ export interface CreateUserDto {
   division?: string;
   bloodGroup?: string;
   postalCode?: number;
+  companyId?: number;
+  branchId?: number;
 }
 
 export interface UpdateUserDto {
@@ -49,5 +54,7 @@ export interface UpdateUserDto {
   division?: string;
   bloodGroup?: string;
   postalCode?: number;
+  companyId?: number;
+  branchId?: number;
 }
 

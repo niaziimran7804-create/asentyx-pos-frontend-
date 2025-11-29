@@ -1,0 +1,265 @@
+<div class="registration-container">
+  <div class="registration-card">
+    <div class="registration-header">
+      <h2><i class="fas fa-building"></i> Register Your Company</h2>
+      <p class="subtitle">Create your company account and start managing your POS system</p>
+    </div>
+
+    <form [formGroup]="registrationForm" (ngSubmit)="onSubmit()">
+      <!-- Company Information Section -->
+      <div class="form-section">
+        <h3><i class="fas fa-briefcase"></i> Company Information</h3>
+        
+        <div class="form-row">
+          <div class="form-group">
+            <label for="companyName">Company Name <span class="required">*</span></label>
+            <input
+              type="text"
+              id="companyName"
+              formControlName="companyName"
+              class="form-control"
+              placeholder="ABC Corporation"
+            />
+            <div *ngIf="registrationForm.get('companyName')?.invalid && registrationForm.get('companyName')?.touched" class="error-message">
+              Company name is required
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label for="email">Company Email <span class="required">*</span></label>
+            <input
+              type="email"
+              id="email"
+              formControlName="email"
+              class="form-control"
+              placeholder="info@company.com"
+            />
+            <div *ngIf="registrationForm.get('email')?.invalid && registrationForm.get('email')?.touched" class="error-message">
+              Valid email is required
+            </div>
+          </div>
+        </div>
+
+        <div class="form-row">
+          <div class="form-group">
+            <label for="phone">Phone</label>
+            <input
+              type="tel"
+              id="phone"
+              formControlName="phone"
+              class="form-control"
+              placeholder="+1234567890"
+            />
+          </div>
+
+          <div class="form-group">
+            <label for="subscriptionPlan">Subscription Plan <span class="required">*</span></label>
+            <select id="subscriptionPlan" formControlName="subscriptionPlan" class="form-control">
+              <option value="Basic">Basic ($29/month)</option>
+              <option value="Standard">Standard ($59/month)</option>
+              <option value="Premium">Premium ($99/month)</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label for="address">Address</label>
+          <input
+            type="text"
+            id="address"
+            formControlName="address"
+            class="form-control"
+            placeholder="123 Main Street"
+          />
+        </div>
+
+        <div class="form-row">
+          <div class="form-group">
+            <label for="city">City</label>
+            <input
+              type="text"
+              id="city"
+              formControlName="city"
+              class="form-control"
+              placeholder="New York"
+            />
+          </div>
+
+          <div class="form-group">
+            <label for="country">Country</label>
+            <input
+              type="text"
+              id="country"
+              formControlName="country"
+              class="form-control"
+              placeholder="USA"
+            />
+          </div>
+
+          <div class="form-group">
+            <label for="postalCode">Postal Code</label>
+            <input
+              type="text"
+              id="postalCode"
+              formControlName="postalCode"
+              class="form-control"
+              placeholder="10001"
+            />
+          </div>
+        </div>
+
+        <div class="form-row">
+          <div class="form-group">
+            <label for="taxNumber">Tax Number</label>
+            <input
+              type="text"
+              id="taxNumber"
+              formControlName="taxNumber"
+              class="form-control"
+              placeholder="TAX-12345"
+            />
+          </div>
+
+          <div class="form-group">
+            <label for="registrationNumber">Registration Number</label>
+            <input
+              type="text"
+              id="registrationNumber"
+              formControlName="registrationNumber"
+              class="form-control"
+              placeholder="REG-67890"
+            />
+          </div>
+        </div>
+      </div>
+
+      <!-- Admin User Information Section -->
+      <div class="form-section">
+        <h3><i class="fas fa-user-shield"></i> Admin User Information</h3>
+        <p class="section-note"><i class="fas fa-info-circle"></i> This user will be the company administrator with full access</p>
+
+        <div class="form-row">
+          <div class="form-group">
+            <label for="adminUserId">Admin User ID <span class="required">*</span></label>
+            <input
+              type="text"
+              id="adminUserId"
+              formControlName="adminUserId"
+              class="form-control"
+              placeholder="admin123"
+            />
+            <div *ngIf="registrationForm.get('adminUserId')?.invalid && registrationForm.get('adminUserId')?.touched" class="error-message">
+              Admin User ID is required
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label for="adminPassword">Admin Password <span class="required">*</span></label>
+            <input
+              type="password"
+              id="adminPassword"
+              formControlName="adminPassword"
+              class="form-control"
+              placeholder="Minimum 8 characters"
+            />
+            <div *ngIf="registrationForm.get('adminPassword')?.invalid && registrationForm.get('adminPassword')?.touched" class="error-message">
+              Password must be at least 8 characters
+            </div>
+          </div>
+        </div>
+
+        <div class="form-row">
+          <div class="form-group">
+            <label for="adminFirstName">First Name <span class="required">*</span></label>
+            <input
+              type="text"
+              id="adminFirstName"
+              formControlName="adminFirstName"
+              class="form-control"
+              placeholder="John"
+            />
+            <div *ngIf="registrationForm.get('adminFirstName')?.invalid && registrationForm.get('adminFirstName')?.touched" class="error-message">
+              First name is required
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label for="adminLastName">Last Name <span class="required">*</span></label>
+            <input
+              type="text"
+              id="adminLastName"
+              formControlName="adminLastName"
+              class="form-control"
+              placeholder="Doe"
+            />
+            <div *ngIf="registrationForm.get('adminLastName')?.invalid && registrationForm.get('adminLastName')?.touched" class="error-message">
+              Last name is required
+            </div>
+          </div>
+        </div>
+
+        <div class="form-row">
+          <div class="form-group">
+            <label for="adminEmail">Admin Email <span class="required">*</span></label>
+            <input
+              type="email"
+              id="adminEmail"
+              formControlName="adminEmail"
+              class="form-control"
+              placeholder="admin@company.com"
+            />
+            <div *ngIf="registrationForm.get('adminEmail')?.invalid && registrationForm.get('adminEmail')?.touched" class="error-message">
+              Valid email is required
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label for="adminPhone">Admin Phone</label>
+            <input
+              type="tel"
+              id="adminPhone"
+              formControlName="adminPhone"
+              class="form-control"
+              placeholder="+1234567890"
+            />
+          </div>
+        </div>
+      </div>
+
+      <!-- Submit Button -->
+      <div class="form-actions">
+        <button
+          type="button"
+          class="btn btn-secondary"
+          (click)="goToLogin()"
+          [disabled]="loading"
+        >
+          <i class="fas fa-arrow-left"></i> Back to Login
+        </button>
+        <button
+          type="submit"
+          class="btn btn-primary btn-lg"
+          [disabled]="registrationForm.invalid || loading"
+        >
+          <span *ngIf="loading">
+            <i class="fa fa-spinner fa-spin"></i> Creating Company...
+          </span>
+          <span *ngIf="!loading">
+            <i class="fa fa-check"></i> Register Company
+          </span>
+        </button>
+      </div>
+    </form>
+
+    <!-- What Happens Info Box -->
+    <div class="info-box">
+      <h4><i class="fas fa-magic"></i> What happens when you register?</h4>
+      <ul>
+        <li><i class="fas fa-check text-success"></i> Your company account is created</li>
+        <li><i class="fas fa-check text-success"></i> A "Head Office" branch is automatically created</li>
+        <li><i class="fas fa-check text-success"></i> Your admin user account is created</li>
+        <li><i class="fas fa-check text-success"></i> You'll be ready to add more branches and users</li>
+      </ul>
+    </div>
+  </div>
+</div>
