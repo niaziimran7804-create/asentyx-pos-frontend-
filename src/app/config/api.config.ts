@@ -20,7 +20,7 @@ const resolveBaseUrl = (): string => {
   }
 
   // In production, point to the production API domain (Vercel frontend -> backend on asentyx.com:5000)
-  return 'https://asentyx.com:5000/api';
+  return 'http://asentyx.com:5000/api';
 };
 
 export const API_CONFIG = {
