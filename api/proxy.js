@@ -38,7 +38,7 @@ async function fetchWithTimeout(url, options = {}, timeoutMs = DEFAULT_TIMEOUT_M
       console.warn(`Proxy fetch attempt ${attempt} failed:`, err && err.message ? err.message : String(err));
       // If aborted due to timeout, mark explicitly
       if (err && err.name === 'AbortError') {
-        lastErr = new Error('Request timed out');
+        lastErr = new Error('Reques  t timed out');
       }
       if (attempt > retries) break;
       // Exponential backoff before retrying
