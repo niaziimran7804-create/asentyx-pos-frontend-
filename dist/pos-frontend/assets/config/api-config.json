@@ -1,0 +1,9 @@
+{
+  "baseUrl": "/api",
+  "production": {
+    "baseUrl": "http://13.62.109.216/api"
+  },
+  "development": {
+    "baseUrl": "/api"
+  }
+}
