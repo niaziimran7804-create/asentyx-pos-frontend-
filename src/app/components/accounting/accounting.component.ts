@@ -89,9 +89,10 @@ export class AccountingComponent implements OnInit {
   setupMenuItems(): void {
     this.menuItems = [
       { label: 'Dashboard', icon: 'fas fa-chart-line', route: '/dashboard' },
+      { label: 'Categories', icon: 'fas fa-tags', route: '/categories' },
       { label: 'Products', icon: 'fas fa-box', route: '/products' },
       { label: 'Orders', icon: 'fas fa-shopping-cart', route: '/orders' },
-      { label: 'Categories', icon: 'fas fa-tags', route: '/categories' },
+      { label: 'Returns', icon: 'fas fa-undo', route: '/returns' },
       { label: 'Invoices', icon: 'fas fa-file-invoice', route: '/invoices' },
       { label: 'Accounting', icon: 'fas fa-calculator', route: '/accounting' },
       { label: 'Customer Balance', icon: 'fas fa-users-cog', route: '/customer-balance' }

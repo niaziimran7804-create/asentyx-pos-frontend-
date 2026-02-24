@@ -1,7 +1,7 @@
 {
-  "baseUrl": "/api",
+  "baseUrl": "http://localhost:7000/api",
   "production": {
-    "baseUrl": "http://13.62.109.216/api"
+    "baseUrl": "https://localhost:7000/api"
   },
   "development": {
     "baseUrl": "/api"

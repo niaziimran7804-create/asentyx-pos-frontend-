@@ -46,12 +46,7 @@
 
         <!-- Dropdown Menu -->
         <div *ngIf="showUserMenu" class="dropdown-menu">
-          <button class="dropdown-item" (click)="closeUserMenu()">
-            <i class="fas fa-user me-2"></i> Profile
-          </button>
-          <button class="dropdown-item" (click)="closeUserMenu()">
-            <i class="fas fa-cog me-2"></i> Settings
-          </button>
+
           <hr style="margin: 0.5rem 0; border-color: #dee2e6;" />
           <button (click)="logout()" class="dropdown-item text-danger">
             <i class="fas fa-sign-out-alt me-2"></i> Logout

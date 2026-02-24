@@ -9,7 +9,8 @@ import { API_CONFIG } from '../config/api.config';
   providedIn: 'root'
 })
 export class AuthService {
-  private apiUrl = `${API_CONFIG.baseUrl}/auth`;
+  private baseUrl = API_CONFIG.baseUrl;
+  private apiUrl = `${this.baseUrl}/auth`;
   private currentUserSubject = new BehaviorSubject<UserDto | null>(null);
   public currentUser$ = this.currentUserSubject.asObservable();
 
@@ -22,6 +23,7 @@ export class AuthService {
   }
 
   login(loginDto: LoginDto): Observable<LoginResponseDto> {
+    console.log('url: ', this.apiUrl);
     return this.http.post<LoginResponseDto>(`${this.apiUrl}/login`, loginDto)
       .pipe(
         tap(response => {

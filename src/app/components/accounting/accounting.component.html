@@ -191,17 +191,19 @@
             </tr>
           </thead>
           <tbody>
-            <tr *ngFor="let day of dailySales">
-              <td>{{ formatDate(day.date) }}</td>
-              <td>{{ formatCurrency(day.totalSales) }}</td>
-              <td>{{ day.totalOrders }}</td>
-              <td>{{ formatCurrency(day.totalExpenses) }}</td>
-              <td class="text-danger">{{ formatCurrency(day.totalRefunds) }}</td>
-              <td [style.color]="day.netProfit > 0 ? '#48bb78' : '#f56565'">
-                {{ formatCurrency(day.netProfit) }}
-              </td>
-              <td>{{ formatCurrency(day.averageOrderValue) }}</td>
-            </tr>
+            <ng-container *ngFor="let day of dailySales">
+              <tr *ngIf="day.totalOrders > 0 || day.totalSales > 0">
+                <td>{{ formatDate(day.date) }}</td>
+                <td>{{ formatCurrency(day.totalSales) }}</td>
+                <td>{{ day.totalOrders }}</td>
+                <td>{{ formatCurrency(day.totalExpenses) }}</td>
+                <td class="text-danger">{{ formatCurrency(day.totalRefunds) }}</td>
+                <td [style.color]="day.netProfit > 0 ? '#48bb78' : '#f56565'">
+                  {{ formatCurrency(day.netProfit) }}
+                </td>
+                <td>{{ formatCurrency(day.averageOrderValue) }}</td>
+              </tr>
+            </ng-container>
           </tbody>
         </table>
       </div>

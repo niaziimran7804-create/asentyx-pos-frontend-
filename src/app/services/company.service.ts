@@ -8,7 +8,9 @@ import { CompanyDto, CreateCompanyDto, UpdateCompanyDto } from '../models/compan
   providedIn: 'root'
 })
 export class CompanyService {
-  private apiUrl = `${API_CONFIG.baseUrl}/companies`;
+    private baseUrl = API_CONFIG.baseUrl;
+
+  private apiUrl = `${this.baseUrl}/companies`;
 
   constructor(private http: HttpClient) {}
 
